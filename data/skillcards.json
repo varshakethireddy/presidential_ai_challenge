@@ -1,0 +1,30 @@
+[
+  {
+    "id": "grounding_54321",
+    "tags": ["anxiety", "panic", "overwhelm"],
+    "title": "5-4-3-2-1 Grounding",
+    "steps": [
+      "Name 5 things you can see.",
+      "Name 4 things you can feel (chair, clothes, feet on floor).",
+      "Name 3 things you can hear.",
+      "Name 2 things you can smell.",
+      "Name 1 thing you can taste (or a comforting thought)."
+    ],
+    "notes": "Use when your mind is racing or you feel panicky.",
+    "source": "General grounding technique used in CBT/DBT skills education."
+  },
+  {
+    "id": "breathing_box",
+    "tags": ["anxiety", "stress"],
+    "title": "Box Breathing (1 minute)",
+    "steps": [
+      "Inhale 4 seconds.",
+      "Hold 4 seconds.",
+      "Exhale 4 seconds.",
+      "Hold 4 seconds.",
+      "Repeat 4 times."
+    ],
+    "notes": "Helps your body shift out of fight-or-flight.",
+    "source": "Common evidence-based breathing practice."
+  }
+]
