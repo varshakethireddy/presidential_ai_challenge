@@ -1,6 +1,5 @@
-  
-import os 
 from __future__ import annotations
+import os 
 import streamlit as st
 from dotenv import load_dotenv
 from openai import OpenAI

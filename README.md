@@ -87,3 +87,7 @@ Add your preferred license here (e.g., MIT, Apache-2.0) or remove this section i
 ## Contact
 
 Project maintainer: `varshakethireddy` (update contact details as needed)
+
+
+## Set up OpenAI API KEY
+export OPENAI_API_KEY="your_key_here"
