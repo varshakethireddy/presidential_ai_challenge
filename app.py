@@ -64,7 +64,7 @@ def call_model(user_message: str, rag_context: str) -> str:
     client = OpenAI(api_key=api_key)
 
     # You can keep this model cheap
-    model = "gpt-5o-mini"
+    model = "gpt-5-mini"
 
     response = client.responses.create(
         model=model,
