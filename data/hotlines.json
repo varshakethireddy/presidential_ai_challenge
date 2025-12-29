@@ -1,0 +1,124 @@
+
+[
+  {
+    "id": "us-national-suicide-prevention-lifeline",
+    "type": "hotline",
+    "name": "National Suicide Prevention Lifeline",
+    "country": "United States",
+    "region": null,
+    "phone": "988 / 1-800-273-8255",
+    "sms": null,
+    "website": "https://www.samhsa.gov/find-help/national-helpline",
+    "notes": "24/7 support for people in suicidal crisis or emotional distress.",
+    "tags": ["suicide-prevention", "24/7"]
+  },
+  {
+    "id": "us-crisis-text-line",
+    "type": "hotline",
+    "name": "Crisis Text Line",
+    "country": "United States",
+    "region": null,
+    "phone": null,
+    "sms": "Text HOME to 741741",
+    "website": "https://www.crisistextline.org/",
+    "notes": "Free, 24/7 support via SMS for those in crisis.",
+    "tags": ["text", "crisis", "24/7"]
+  },
+  {
+    "id": "us-the-trevor-project",
+    "type": "hotline",
+    "name": "The Trevor Project",
+    "country": "United States",
+    "region": null,
+    "phone": "1-866-488-7386",
+    "sms": "Text START to 678678",
+    "website": "https://www.thetrevorproject.org/",
+    "notes": "Support and crisis intervention for LGBTQ+ young people (24/7).",
+    "tags": ["lgbtq+", "youth", "suicide-prevention"]
+  },
+  {
+    "id": "ca-talk-suicide-canada",
+    "type": "hotline",
+    "name": "Talk Suicide Canada",
+    "country": "Canada",
+    "region": null,
+    "phone": "1-833-456-4566",
+    "sms": "Text 45645",
+    "website": null,
+    "notes": "National support line for people thinking about suicide (Canada).",
+    "tags": ["suicide-prevention", "canada"]
+  },
+  {
+    "id": "ca-kids-help-phone",
+    "type": "hotline",
+    "name": "Kids Help Phone",
+    "country": "Canada",
+    "region": null,
+    "phone": "1-800-668-6868",
+    "sms": "Text CONNECT to 686868",
+    "website": "https://kidshelpphone.ca/",
+    "notes": "Counselling and support for young people across Canada.",
+    "tags": ["youth", "canada", "24/7"]
+  },
+  {
+    "id": "uk-samaritans",
+    "type": "hotline",
+    "name": "Samaritans",
+    "country": "United Kingdom",
+    "region": null,
+    "phone": "116 123",
+    "sms": null,
+    "website": "https://www.samaritans.org/",
+    "notes": "24/7 listening service for people in distress in the UK.",
+    "tags": ["uk", "suicide-prevention", "24/7"]
+  },
+  {
+    "id": "uk-shout",
+    "type": "hotline",
+    "name": "Shout (Crisis Text Line)",
+    "country": "United Kingdom",
+    "region": null,
+    "phone": null,
+    "sms": "Text SHOUT to 85258",
+    "website": "https://giveusashout.org/",
+    "notes": "Free 24/7 mental health text support in the UK.",
+    "tags": ["text", "uk", "24/7"]
+  },
+  {
+    "id": "au-lifeline",
+    "type": "hotline",
+    "name": "Lifeline",
+    "country": "Australia",
+    "region": null,
+    "phone": "13 11 14",
+    "sms": null,
+    "website": "https://www.lifeline.org.au/",
+    "notes": "24/7 crisis support and suicide prevention services in Australia.",
+    "tags": ["australia", "suicide-prevention", "24/7"]
+  },
+  {
+    "id": "au-kids-helpline",
+    "type": "hotline",
+    "name": "Kids Helpline",
+    "country": "Australia",
+    "region": null,
+    "phone": "1800 55 1800",
+    "sms": null,
+    "website": "https://kidshelpline.com.au/",
+    "notes": "Free, private and confidential 24/7 phone and online counselling for young people aged 5-25 in Australia.",
+    "tags": ["australia", "youth", "24/7"]
+  },
+  {
+    "id": "befrienders-worldwide",
+    "type": "hotline-network",
+    "name": "Befrienders Worldwide",
+    "country": "International",
+    "region": null,
+    "phone": null,
+    "sms": null,
+    "website": "https://befrienders.org/",
+    "notes": "Global network of emotional support helplines; find local contacts through the website.",
+    "tags": ["international", "directory"]
+  }
+  
+]
