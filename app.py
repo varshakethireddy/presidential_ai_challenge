@@ -12,7 +12,7 @@ load_dotenv()
 
 st.set_page_config(page_title="TeenMind Coach", page_icon="💬")
 
-st.title("💬 TeenMind Coach")
+st.title("💬 Insert Name")
 st.caption("A teen-focused coping-skills coach (not a therapist).")
 
 # Initialize session state
@@ -64,7 +64,7 @@ def call_model(user_message: str, rag_context: str) -> str:
     client = OpenAI(api_key=api_key)
 
     # You can keep this model cheap
-    model = "gpt-4o-mini"
+    model = "gpt-5o-mini"
 
     response = client.responses.create(
         model=model,
