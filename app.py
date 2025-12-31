@@ -7,6 +7,8 @@ from openai import OpenAI
 from safety import crisis_check, crisis_response
 from rag import load_cards, retrieve_cards
 from prompts import SYSTEM_PROMPT, format_cards_for_prompt
+from schema import COACH_OUTPUT_SCHEMA
+import json
 
 load_dotenv()
 
@@ -56,10 +58,16 @@ def call_model(user_message: str, rag_context: str) -> str:
     api_key = os.getenv("OPENAI_API_KEY")
     if not api_key:
         # Allow running without API key for UI testing
-        return (
-            "API key not set. I can still show the chatbot UI.\n\n"
-            "To enable responses, set OPENAI_API_KEY in your environment or .env file."
-        )
+        return {
+            "intent": "other",
+            "tone": "other",
+            "risk_level": "other",
+            "should_offer_skill": True,
+            "assistant_message": (
+                "API key not set. I can show the chatbot UI, but I can’t generate responses yet.\n\n"
+                "Set OPENAI_API_KEY in your environment or .env file."
+            ),
+        }
 
     client = OpenAI(api_key=api_key)
 
@@ -67,14 +75,22 @@ def call_model(user_message: str, rag_context: str) -> str:
     model = "gpt-5-mini"
 
     response = client.responses.create(
-        model=model,
+        model="gpt-4o-mini",
         input=[
             {"role": "system", "content": SYSTEM_PROMPT},
             {"role": "system", "content": "Coping skill cards (use only these):\n\n" + rag_context},
             {"role": "user", "content": user_message},
         ],
+        text={
+            "format": {
+                "type": "json_schema",
+                "json_schema": COACH_OUTPUT_SCHEMA
+            }
+        },
     )
-    return response.output_text
+
+    raw = response.output_text
+    return json.loads(raw)
 
 if user_text:
     # Add user message
