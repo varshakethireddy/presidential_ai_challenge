@@ -80,6 +80,15 @@ def call_model(user_message: str, rag_context: str) -> str:
     # You can keep this model cheap
     model = "gpt-5-mini"
 
+    # The Responses API expects the 'schema' to be a JSON Schema object (type: object).
+    # Our `COACH_OUTPUT_SCHEMA` may be a wrapper dict (with keys like 'name','schema'),
+    # so extract the actual schema object if necessary.
+    schema_to_send = None
+    if isinstance(COACH_OUTPUT_SCHEMA, dict) and "schema" in COACH_OUTPUT_SCHEMA:
+        schema_to_send = COACH_OUTPUT_SCHEMA["schema"]
+    else:
+        schema_to_send = COACH_OUTPUT_SCHEMA
+
     response = client.responses.create(
         model="gpt-4o-mini",
         input=[
@@ -89,14 +98,25 @@ def call_model(user_message: str, rag_context: str) -> str:
         ],
         text={
             "format": {
+                "name": "coach_output",
                 "type": "json_schema",
-                "json_schema": COACH_OUTPUT_SCHEMA
+                "schema": schema_to_send,
             }
         },
     )
 
-    raw = response.output_text
-    return json.loads(raw)
+    # The Responses API returns structured content; prefer using response.output_parsed when available,
+    # otherwise fall back to parsing output_text.
+    parsed = None
+    try:
+        parsed = response.output_parsed
+    except Exception:
+        parsed = None
+
+    if parsed is None:
+        raw = response.output_text
+        return json.loads(raw)
+    return parsed
 
 if user_text:
     # Add user message

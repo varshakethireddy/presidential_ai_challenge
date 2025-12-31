@@ -1,0 +1,3 @@
+{"session_id": "041c1e8f-f5f5-4e1c-bb2a-b072bae727b5", "turn_index": 3, "intent": "other", "tone": "calm", "risk_level": "low", "should_offer_skill": true, "ts_utc": "2025-12-31T15:18:55.875495+00:00"}
+{"session_id": "041c1e8f-f5f5-4e1c-bb2a-b072bae727b5", "turn_index": 5, "intent": "stress", "tone": "overwhelmed", "risk_level": "low", "should_offer_skill": true, "ts_utc": "2025-12-31T15:20:44.471395+00:00"}
+{"session_id": "041c1e8f-f5f5-4e1c-bb2a-b072bae727b5", "turn_index": 7, "intent": "stress", "tone": "overwhelmed", "risk_level": "low", "should_offer_skill": true, "ts_utc": "2025-12-31T15:21:22.750241+00:00"}
