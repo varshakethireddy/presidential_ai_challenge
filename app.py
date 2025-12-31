@@ -9,6 +9,9 @@ from rag import load_cards, retrieve_cards
 from prompts import SYSTEM_PROMPT, format_cards_for_prompt
 from schema import COACH_OUTPUT_SCHEMA
 import json
+import uuid 
+from emotion_logger import log_turn
+
 
 load_dotenv()
 
@@ -16,6 +19,9 @@ st.set_page_config(page_title="TeenMind Coach", page_icon="💬")
 
 st.title("💬 Insert Name")
 st.caption("A teen-focused coping-skills coach (not a therapist).")
+
+if "session_id" not in st.session_state:
+    st.session_state["session_id"] = str(uuid.uuid4())
 
 # Initialize session state
 if "messages" not in st.session_state:
@@ -121,13 +127,21 @@ if user_text:
             st.sidebar.write(f"- {c['title']}")
 
     # Call model
-    bot = call_model(user_text, rag_context)
-
-    # Add assistant response
-    st.session_state["messages"].append({"role": "assistant", "content": bot})
+    result = call_model(user_text, rag_context)
+    # Show assistant message to user
+    bot_text = result["assistant_message"]
+    st.session_state["messages"].append({"role": "assistant", "content": bot_text})
     with st.chat_message("assistant"):
-        st.markdown(bot)
+        st.markdown(bot_text)
 
-
+    # Log structured fields (NO raw user text stored)
+    log_turn({
+        "session_id": st.session_state["session_id"],
+        "turn_index": len(st.session_state["messages"]),
+        "intent": result["intent"],
+        "tone": result["tone"],
+        "risk_level": result["risk_level"],
+        "should_offer_skill": result["should_offer_skill"],
+    })
 
 
