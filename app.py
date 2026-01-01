@@ -227,7 +227,7 @@ for msg in st.session_state["messages"]:
     _render_message_with_avatar(msg)
     previous_role = msg.get("role")
 
-user_text = st.chat_input("Type a message…")
+user_text = st.chat_input("type a message…")
 
 def cheap_intent_heuristic(text: str) -> str:
     """Day-1 intent detector. Replace later with a trained classifier."""
@@ -240,7 +240,7 @@ def cheap_intent_heuristic(text: str) -> str:
         return "sleep"
     if any(w in t for w in ["fight", "argument", "friend", "drama", "parents"]):
         return "conflict"
-    return "stress"
+    return "insufficient information"
 
 def call_model(user_message: str, rag_context: str) -> str:
     api_key = os.getenv("OPENAI_API_KEY")
@@ -322,22 +322,25 @@ if user_text:
         _render_message_with_avatar({"role": "assistant", "content": bot})
         st.stop()
 
-    # Intent detection (cheap heuristic for day 1)
-    intent = cheap_intent_heuristic(user_text)
-    st.session_state["intent"] = intent
-
-    # Retrieve skill cards
-    chosen = retrieve_cards(cards, intent=intent, k=2)
-    rag_context = format_cards_for_prompt(chosen)
+    # First pass: call model with general context to get intent
+    # Use a broad skill card selection initially
+    initial_intent = cheap_intent_heuristic(user_text)
+    initial_cards = retrieve_cards(cards, intent=initial_intent, k=2)
+    initial_context = format_cards_for_prompt(initial_cards)
+    
+    # Call model to get structured response with proper intent classification
+    result = call_model(user_text, initial_context)
+    
+    # Use the model's intent for session state and potential re-retrieval
+    model_intent = result.get("intent", "stress")
+    st.session_state["intent"] = model_intent
 
     if dev_mode:
-        st.sidebar.success(f"Intent: {intent}")
+        st.sidebar.success(f"Heuristic intent: {initial_intent}")
+        st.sidebar.success(f"Model intent: {model_intent}")
         st.sidebar.write("Retrieved cards:")
-        for c in chosen:
+        for c in initial_cards:
             st.sidebar.write(f"- {c['title']}")
-
-    # Call model
-    result = call_model(user_text, rag_context)
     # Show assistant message to user using custom avatar renderer
     bot_text = result["assistant_message"]
     st.session_state["messages"].append({"role": "assistant", "content": bot_text})
