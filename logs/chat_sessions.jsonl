@@ -45,3 +45,7 @@
 {"session_id": "b7f02e4b-654d-40ea-a36f-0f4e9f256e32", "turn_index": 3, "intent": "other", "tone": "calm", "risk_level": "low", "should_offer_skill": false, "ts_utc": "2026-01-01T20:44:24.327453+00:00"}
 {"session_id": "b7f02e4b-654d-40ea-a36f-0f4e9f256e32", "turn_index": 5, "intent": "anxiety", "tone": "sad", "risk_level": "medium", "should_offer_skill": true, "ts_utc": "2026-01-01T20:44:33.573463+00:00"}
 {"session_id": "3dab950f-d477-46ca-b807-798629f4ed19", "turn_index": 3, "intent": "other", "tone": "calm", "risk_level": "low", "should_offer_skill": true, "ts_utc": "2026-01-01T20:47:43.902377+00:00"}
+{"session_id": "6beea1cc-a314-4c59-85bc-57cda44d29af", "turn_index": 3, "intent": "other", "tone": "calm", "risk_level": "low", "should_offer_skill": true, "ts_utc": "2026-01-01T20:49:31.637112+00:00"}
+{"session_id": "6beea1cc-a314-4c59-85bc-57cda44d29af", "turn_index": 3, "intent": "other", "tone": "calm", "risk_level": "low", "should_offer_skill": false, "ts_utc": "2026-01-01T20:50:22.189949+00:00"}
+{"session_id": "539ee29b-f3a4-47a7-ae84-1a823bd1cc51", "turn_index": 3, "intent": "sadness", "tone": "sad", "risk_level": "medium", "should_offer_skill": true, "ts_utc": "2026-01-01T21:02:23.737528+00:00"}
+{"session_id": "539ee29b-f3a4-47a7-ae84-1a823bd1cc51", "turn_index": 5, "intent": "anxiety", "tone": "overwhelmed", "risk_level": "medium", "should_offer_skill": true, "ts_utc": "2026-01-01T21:02:35.358591+00:00"}

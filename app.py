@@ -9,6 +9,7 @@ from rag import load_cards, retrieve_cards
 from prompts import SYSTEM_PROMPT, format_cards_for_prompt
 from schema import COACH_OUTPUT_SCHEMA
 import json
+import html
 import base64
 import uuid 
 from emotion_logger import log_turn
@@ -43,6 +44,18 @@ st.markdown(
         transform: translateY(0);
         box-shadow: 0 3px 8px rgba(30,144,255,0.22);
     }
+    </style>
+    """,
+    unsafe_allow_html=True,
+)
+
+# Chat bubble styles
+st.markdown(
+    """
+    <style>
+    .chat-bubble { padding:10px 14px; border-radius:12px; max-width:80%; display:inline-block; box-shadow:0 2px 6px rgba(0,0,0,0.06); font-size:14px; line-height:1.4; }
+    .chat-bubble.assistant { background:#f1f6ff; color:#08325a; border-radius:12px 12px 12px 4px; }
+    .chat-bubble.user { background:#e6fff1; color:#044d2c; border-radius:12px 12px 4px 12px; }
     </style>
     """,
     unsafe_allow_html=True,
@@ -83,7 +96,7 @@ if "page" not in st.session_state:
 
 # Sidebar controls
 # Top-of-sidebar: quick Home button
-if st.sidebar.button("🏠 Home", key="sidebar_home"):
+if st.sidebar.button("Home", key="sidebar_home"):
     st.session_state["page"] = "home"
     try:
         st.experimental_rerun()
@@ -133,7 +146,7 @@ cards = load_cards()
 
 # Simple Home page: short welcome and a button to go to the chat
 if st.session_state.get("page", "chat") == "home":
-    st.title("🏠 Home")
+    st.title("Home")
     st.markdown(
         """
         **Welcome to TeenMind Coach** — a friendly place to learn quick coping skills,
@@ -194,7 +207,11 @@ def _render_message_with_avatar(msg: dict):
             else:
                 st.markdown("🙂")
     with col_msg:
-        st.markdown(content)
+        # Escape user content to avoid HTML injection and preserve newlines
+        safe = html.escape(content)
+        safe = safe.replace('\n', '<br/>')
+        bubble_class = 'assistant' if role == 'assistant' else 'user'
+        st.markdown(f'<div class="chat-bubble {bubble_class}">{safe}</div>', unsafe_allow_html=True)
 
 previous_role = None
 for msg in st.session_state["messages"]:
