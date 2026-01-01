@@ -18,8 +18,6 @@ from emotion_logger import log_turn
 load_dotenv()
 
 st.set_page_config(page_title="TeenMind Coach", page_icon="💬")
-## Top-row controls: left-aligned reset button that clears the on-screen chat only
-row_col1, row_col2 = st.columns([3, 7])
 # Custom button styling: make buttons look like blue rounded "bubbles".
 # Scoped to `.stButton > button:first-child` so it primarily affects the left/top button.
 st.markdown(
@@ -60,23 +58,33 @@ st.markdown(
     """,
     unsafe_allow_html=True,
 )
-with row_col1:
-    if st.button("reset chat", key="reset_chat"):
-        # Reset only the on-screen messages for this session
-        st.session_state["messages"] = [
-            {"role": "assistant", "content": "Hey — I’m here with you. What’s been going on today?"}
-        ]
-        # Try to rerun the app to reflect the cleared UI immediately; safe for older Streamlit
-        try:
-            st.experimental_rerun()
-        except Exception:
-            pass
-with row_col2:
-    # leave space to keep the button visually on the left/top
-    pass
+# Ensure page default is set before rendering header controls
+if "page" not in st.session_state:
+    st.session_state["page"] = "home"
+# Control whether the chat header (title + reset button) is visible.
+# Default to False so Home doesn't show the chat header.
+if "show_chat_header" not in st.session_state:
+    st.session_state["show_chat_header"] = False
+# Only show the top-row reset button and page title when on the chat page
+if st.session_state.get("page", "chat") == "chat":
+    row_col1, row_col2 = st.columns([3, 7])
+    with row_col1:
+        if st.button("reset chat", key="reset_chat"):
+            # Reset only the on-screen messages for this session
+            st.session_state["messages"] = [
+                {"role": "assistant", "content": "Hey — I’m here with you. What’s been going on today?"}
+            ]
+            # Try to rerun the app to reflect the cleared UI immediately; safe for older Streamlit
+            try:
+                st.experimental_rerun()
+            except Exception:
+                pass
+    with row_col2:
+        # leave space to keep the button visually on the left/top
+        pass
 
-st.title("💬 Juno AI")
-st.caption("A teen-focused coping-skills coach (not a therapist).")
+    st.title("💬 Juno AI")
+    st.caption("A teen-focused coping-skills coach (not a therapist).")
 
 if "session_id" not in st.session_state:
     st.session_state["session_id"] = str(uuid.uuid4())
@@ -90,14 +98,11 @@ if "messages" not in st.session_state:
 if "intent" not in st.session_state:
     st.session_state["intent"] = "stress"  # default fallback
 
-# Page state: either 'chat' or 'home' (show Home first on initial load)
-if "page" not in st.session_state:
-    st.session_state["page"] = "home"
-
 # Sidebar controls
 # Top-of-sidebar: quick Home button
 if st.sidebar.button("Home", key="sidebar_home"):
     st.session_state["page"] = "home"
+    st.session_state["show_chat_header"] = False
     try:
         st.experimental_rerun()
     except Exception:
@@ -158,6 +163,7 @@ if st.session_state.get("page", "chat") == "home":
     st.write("Helpful links and project info can go here.")
     if st.button("💬 Go to Chat", key="home_go_chat"):
         st.session_state["page"] = "chat"
+        st.session_state["show_chat_header"] = True
         try:
             st.experimental_rerun()
         except Exception:
