@@ -9,6 +9,7 @@ from rag import load_cards, retrieve_cards
 from prompts import SYSTEM_PROMPT, format_cards_for_prompt
 from schema import COACH_OUTPUT_SCHEMA
 import json
+import base64
 import uuid 
 from emotion_logger import log_turn
 
@@ -61,7 +62,7 @@ with row_col2:
     # leave space to keep the button visually on the left/top
     pass
 
-st.title("💬 Insert Name")
+st.title("💬 Juno AI")
 st.caption("A teen-focused coping-skills coach (not a therapist).")
 
 if "session_id" not in st.session_state:
@@ -76,18 +77,132 @@ if "messages" not in st.session_state:
 if "intent" not in st.session_state:
     st.session_state["intent"] = "stress"  # default fallback
 
+# Page state: either 'chat' or 'home' (show Home first on initial load)
+if "page" not in st.session_state:
+    st.session_state["page"] = "home"
+
 # Sidebar controls
-st.sidebar.header("Controls")
+# Top-of-sidebar: quick Home button
+if st.sidebar.button("🏠 Home", key="sidebar_home"):
+    st.session_state["page"] = "home"
+    try:
+        st.experimental_rerun()
+    except Exception:
+        pass
+
+st.sidebar.header("sidebar")
 st.sidebar.write("This demo does not store conversations.")
 dev_mode = st.sidebar.checkbox("Developer mode (show intent)", value=False)
+
+# Avatar images set in code
+# To change the assistant/user profile pictures, edit these paths to point to image files
+# included in the repo (e.g., `data/avatars/assistant.png` or `data/avatars/assistant.svg`).
+# If the files are missing, the UI will fall back to emoji icons.
+ASSISTANT_AVATAR_PNG = "data/avatars/assistant.png"
+ASSISTANT_AVATAR_SVG = "data/avatars/assistant.svg"
+USER_AVATAR_PNG = "data/avatars/user.png"
+USER_AVATAR_SVG = "data/avatars/user.svg"
+
+# Load avatar bytes if files exist (developer-editable, not user-uploaded).
+# Prefer PNG if present, otherwise fall back to SVG.
+assistant_avatar_bytes = None
+user_avatar_bytes = None
+try:
+    if os.path.exists(ASSISTANT_AVATAR_PNG):
+        with open(ASSISTANT_AVATAR_PNG, "rb") as _f:
+            assistant_avatar_bytes = _f.read()
+    elif os.path.exists(ASSISTANT_AVATAR_SVG):
+        with open(ASSISTANT_AVATAR_SVG, "rb") as _f:
+            assistant_avatar_bytes = _f.read()
+except Exception:
+    assistant_avatar_bytes = None
+
+try:
+    if os.path.exists(USER_AVATAR_PNG):
+        with open(USER_AVATAR_PNG, "rb") as _f:
+            user_avatar_bytes = _f.read()
+    elif os.path.exists(USER_AVATAR_SVG):
+        with open(USER_AVATAR_SVG, "rb") as _f:
+            user_avatar_bytes = _f.read()
+except Exception:
+    user_avatar_bytes = None
+
 
 # Load RAG cards once
 cards = load_cards()
 
+# Simple Home page: short welcome and a button to go to the chat
+if st.session_state.get("page", "chat") == "home":
+    st.title("🏠 Home")
+    st.markdown(
+        """
+        **Welcome to TeenMind Coach** — a friendly place to learn quick coping skills,
+        find calming exercises, and get directed to help if you're in crisis.
+
+        This is a placeholder home page you can edit later.
+        """
+    )
+    st.write("Helpful links and project info can go here.")
+    if st.button("💬 Go to Chat", key="home_go_chat"):
+        st.session_state["page"] = "chat"
+        try:
+            st.experimental_rerun()
+        except Exception:
+            pass
+    st.stop()
+
 # Render chat history
+def _render_message_with_avatar(msg: dict):
+    role = msg.get("role")
+    content = msg.get("content", "")
+
+    def _avatar_img_tag(image_bytes: bytes, width: int = 48) -> str:
+        """Return an HTML <img> tag (base64) for PNG/JPEG/SVG bytes with circular crop styles."""
+        try:
+            head = image_bytes.lstrip()[:10]
+            if head.startswith(b"\x89PNG"):
+                mime = "image/png"
+            elif head.startswith(b"\xff\xd8"):
+                mime = "image/jpeg"
+            else:
+                # treat as svg/xml
+                mime = "image/svg+xml"
+            b64 = base64.b64encode(image_bytes).decode("utf-8")
+            return f'<img src="data:{mime};base64,{b64}" width="{width}" height="{width}" style="border-radius:50%;object-fit:cover;display:block;"/>'
+        except Exception:
+            return ""
+
+    # Always place avatar on the left, message on the right (1:9 columns)
+    col_avatar, col_msg = st.columns([1, 9])
+    with col_avatar:
+        if role == "assistant":
+            if assistant_avatar_bytes:
+                img_tag = _avatar_img_tag(assistant_avatar_bytes, width=48)
+                if img_tag:
+                    st.markdown(img_tag, unsafe_allow_html=True)
+                else:
+                    st.markdown("💬")
+            else:
+                st.markdown("💬")
+        else:
+            if user_avatar_bytes:
+                img_tag = _avatar_img_tag(user_avatar_bytes, width=48)
+                if img_tag:
+                    st.markdown(img_tag, unsafe_allow_html=True)
+                else:
+                    st.markdown("🙂")
+            else:
+                st.markdown("🙂")
+    with col_msg:
+        st.markdown(content)
+
+previous_role = None
 for msg in st.session_state["messages"]:
-    with st.chat_message(msg["role"]):
-        st.markdown(msg["content"])
+    # Add a subtle divider when the speaker changes (helps separate turns on small screens)
+    if previous_role and previous_role != msg.get("role"):
+        st.markdown("<hr style='border:none;border-top:1px solid #eee;margin:8px 0;'/>", unsafe_allow_html=True)
+    _render_message_with_avatar(msg)
+    previous_role = msg.get("role")
 
 user_text = st.chat_input("Type a message…")
 
@@ -163,17 +278,25 @@ def call_model(user_message: str, rag_context: str) -> str:
     return parsed
 
 if user_text:
-    # Add user message
+    # Add user message to session and render with custom avatar (avoid Streamlit default avatar)
     st.session_state["messages"].append({"role": "user", "content": user_text})
-    with st.chat_message("user"):
-        st.markdown(user_text)
+    # If the previous message was from a different role, show a divider first
+    if len(st.session_state["messages"]) >= 2:
+        prev = st.session_state["messages"][-2]
+        if prev.get("role") != "user":
+            st.markdown("<hr style='border:none;border-top:1px solid #eee;margin:8px 0;'/>", unsafe_allow_html=True)
+    _render_message_with_avatar({"role": "user", "content": user_text})
 
     # Safety first
     if crisis_check(user_text):
         bot = crisis_response()
         st.session_state["messages"].append({"role": "assistant", "content": bot})
-        with st.chat_message("assistant"):
-            st.markdown(bot)
+        # Divider if previous role was different
+        if len(st.session_state["messages"]) >= 2:
+            prev = st.session_state["messages"][-2]
+            if prev.get("role") != "assistant":
+                st.markdown("<hr style='border:none;border-top:1px solid #eee;margin:8px 0;'/>", unsafe_allow_html=True)
+        _render_message_with_avatar({"role": "assistant", "content": bot})
         st.stop()
 
     # Intent detection (cheap heuristic for day 1)
@@ -192,11 +315,15 @@ if user_text:
 
     # Call model
     result = call_model(user_text, rag_context)
-    # Show assistant message to user
+    # Show assistant message to user using custom avatar renderer
     bot_text = result["assistant_message"]
     st.session_state["messages"].append({"role": "assistant", "content": bot_text})
-    with st.chat_message("assistant"):
-        st.markdown(bot_text)
+    # Divider if previous role was different
+    if len(st.session_state["messages"]) >= 2:
+        prev = st.session_state["messages"][-2]
+        if prev.get("role") != "assistant":
+            st.markdown("<hr style='border:none;border-top:1px solid #eee;margin:8px 0;'/>", unsafe_allow_html=True)
+    _render_message_with_avatar({"role": "assistant", "content": bot_text})
 
     # Log structured fields (NO raw user text stored)
     log_turn({
