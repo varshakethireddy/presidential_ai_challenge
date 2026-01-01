@@ -16,6 +16,50 @@ from emotion_logger import log_turn
 load_dotenv()
 
 st.set_page_config(page_title="TeenMind Coach", page_icon="💬")
+## Top-row controls: left-aligned reset button that clears the on-screen chat only
+row_col1, row_col2 = st.columns([3, 7])
+# Custom button styling: make buttons look like blue rounded "bubbles".
+# Scoped to `.stButton > button:first-child` so it primarily affects the left/top button.
+st.markdown(
+    """
+    <style>
+    /* primary bubble button style */
+    div.stButton > button:first-child {
+        background-color: #1E90FF;
+        color: white;
+        border: none;
+        border-radius: 24px;
+        padding: 8px 18px;
+        box-shadow: 0 6px 18px rgba(30,144,255,0.28);
+        font-weight: 600;
+        transition: background-color 0.12s ease-in-out, transform 0.08s ease;
+    }
+    div.stButton > button:first-child:hover {
+        background-color: #187bcd;
+        transform: translateY(-1px);
+    }
+    div.stButton > button:first-child:active {
+        transform: translateY(0);
+        box-shadow: 0 3px 8px rgba(30,144,255,0.22);
+    }
+    </style>
+    """,
+    unsafe_allow_html=True,
+)
+with row_col1:
+    if st.button("reset chat", key="reset_chat"):
+        # Reset only the on-screen messages for this session
+        st.session_state["messages"] = [
+            {"role": "assistant", "content": "Hey — I’m here with you. What’s been going on today?"}
+        ]
+        # Try to rerun the app to reflect the cleared UI immediately; safe for older Streamlit
+        try:
+            st.experimental_rerun()
+        except Exception:
+            pass
+with row_col2:
+    # leave space to keep the button visually on the left/top
+    pass
 
 st.title("💬 Insert Name")
 st.caption("A teen-focused coping-skills coach (not a therapist).")
