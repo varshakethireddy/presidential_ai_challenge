@@ -55,6 +55,7 @@ COACH_OUTPUT_SCHEMA = {
                     "hopelessness",
                     "helplessness",
                     "worthlessness",
+                    "self_harm",
                     "excitement",
                     "joy",
                     "contentment",

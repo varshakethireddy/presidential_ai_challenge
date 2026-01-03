@@ -249,8 +249,7 @@ if st.session_state.get("page") == "emotions":
                     display_intent = intent.replace('_', ' ').title()
                     if intent in ["other", "casual"]:
                         display_intent = "Casual Chat"
-                    confidence = "High" if intent not in ["other", "casual"] else "Medium"
-                    st.markdown(f" **{display_intent}** ({confidence} confidence)")
+
                     
                 with col2:
                     st.markdown("**Emotional Tone**")
@@ -258,8 +257,7 @@ if st.session_state.get("page") == "emotions":
                     display_tone = tone.replace('_', ' ').title()
                     if tone in ["other", "casual"]:
                         display_tone = "Neutral"
-                    tone_confidence = "High" if tone not in ["other", "casual"] else "Medium"
-                    st.markdown(f"**{display_tone}** ({tone_confidence} confidence)")
+                   
                 
                 st.markdown("**Risk Assessment**")
                 risk_color = {"low": "🟢", "moderate": "🟡", "high": "🔴"}.get(emotion["risk_level"].lower(), "⚪")
@@ -481,7 +479,7 @@ if user_text:
             if prev.get("role") != "assistant":
                 st.markdown("<hr style='border:none;border-top:1px solid #eee;margin:8px 0;'/>", unsafe_allow_html=True)
         _render_message_with_avatar({"role": "assistant", "content": bot})
-        st.stop()
+        #st.stop()
 
     # First pass: call model with general context to get intent
     # Use a broad skill card selection initially
@@ -512,6 +510,8 @@ if user_text:
             st.markdown("<hr style='border:none;border-top:1px solid #eee;margin:8px 0;'/>", unsafe_allow_html=True)
     _render_message_with_avatar({"role": "assistant", "content": bot_text})
 
+  
+  
     # Log structured fields (NO raw user text stored)
     log_turn({
         "session_id": st.session_state["session_id"],
