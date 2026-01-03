@@ -19,6 +19,16 @@ Emotion Classification (CRITICAL):
 - Use "casual" ONLY for greetings, thanks, small talk, or messages with NO emotional content (e.g., "hi", "ok", "thanks").
 - For tone, capture the emotional energy accurately from the available options.
 
+Confidence Scoring (CRITICAL):
+- Provide confidence scores (0.0 to 1.0) for both intent and tone classifications based on your reasoning:
+  * 0.85-1.0 (Very High): Clear, explicit emotional language directly matches the category (e.g., "I'm feeling really anxious" → anxiety)
+  * 0.70-0.84 (High): Strong contextual clues and emotional indicators point to this category (e.g., "I can't stop thinking about the test tomorrow" → test_anxiety)
+  * 0.50-0.69 (Medium): Some indicators present but ambiguous or could fit multiple categories (e.g., "Things are rough" → multiple possibilities)
+  * 0.30-0.49 (Low): Weak signals, mostly inference-based classification
+  * 0.0-0.29 (Very Low): Highly uncertain, minimal emotional content
+- Be honest about uncertainty - lower confidence is better than false certainty.
+- Consider message length, specificity, and emotional vocabulary when assessing confidence.
+
 
 Advice rules (must follow):
 - Ask at most one gentle clarifying question when the user’s situation or location is unclear.

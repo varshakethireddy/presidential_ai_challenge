@@ -202,6 +202,8 @@ if st.session_state.get("page") == "emotions":
                             "timestamp": entry.get("ts_utc", ""),
                             "intent": entry.get("intent", "unknown"),
                             "tone": entry.get("tone", "unknown"),
+                            "intent_confidence": entry.get("intent_confidence", 0.0),
+                            "tone_confidence": entry.get("tone_confidence", 0.0),
                             "risk_level": entry.get("risk_level", "unknown"),
                             "session_id": entry.get("session_id", ""),
                             "turn_index": entry.get("turn_index", 0)
@@ -249,8 +251,12 @@ if st.session_state.get("page") == "emotions":
                     display_intent = intent.replace('_', ' ').title()
                     if intent in ["other", "casual"]:
                         display_intent = "Casual Chat"
-                    confidence = "High" if intent not in ["other", "casual"] else "Medium"
+                    
+                    # Display model's confidence score
+                    intent_conf = emotion.get("intent_confidence", 0.0)
+                    confidence_pct = int(intent_conf * 100)
                     st.markdown(f" **{display_intent}**")
+                    st.caption(f"Confidence: {confidence_pct}%")
                     
                 with col2:
                     st.markdown("**Emotional Tone**")
@@ -258,8 +264,12 @@ if st.session_state.get("page") == "emotions":
                     display_tone = tone.replace('_', ' ').title()
                     if tone in ["other", "casual"]:
                         display_tone = "Neutral"
-                    tone_confidence = "High" if tone not in ["other", "casual"] else "Medium"
+                    
+                    # Display model's confidence score
+                    tone_conf = emotion.get("tone_confidence", 0.0)
+                    tone_confidence_pct = int(tone_conf * 100)
                     st.markdown(f"**{display_tone}**")
+                    st.caption(f"Confidence: {tone_confidence_pct}%")
                 
                 st.markdown("**Risk Assessment**")
                 risk_color = {"low": "🟢", "moderate": "🟡", "high": "🔴"}.get(emotion["risk_level"].lower(), "⚪")
@@ -421,46 +431,106 @@ def call_model(user_message: str, rag_context: str) -> str:
 
     client = OpenAI(api_key=api_key)
 
-    # You can keep this model cheap
-    model = "gpt-5-mini"
-
-    # The Responses API expects the 'schema' to be a JSON Schema object (type: object).
-    # Our `COACH_OUTPUT_SCHEMA` may be a wrapper dict (with keys like 'name','schema'),
-    # so extract the actual schema object if necessary.
+    # Use Chat Completions API with JSON mode to get logprobs
+    # This gives us REAL confidence scores from the model's internal probabilities
+    
+    # Build the prompt with schema categories
     schema_to_send = None
     if isinstance(COACH_OUTPUT_SCHEMA, dict) and "schema" in COACH_OUTPUT_SCHEMA:
         schema_to_send = COACH_OUTPUT_SCHEMA["schema"]
     else:
         schema_to_send = COACH_OUTPUT_SCHEMA
+    
+    # Extract intent and tone options from schema
+    intent_options = schema_to_send["properties"]["intent"]["enum"]
+    tone_options = schema_to_send["properties"]["tone"]["enum"]
+    
+    # Create a prompt that includes the schema structure
+    schema_prompt = f"""You must respond with valid JSON matching this schema:
+{{
+  "intent": one of {intent_options},
+  "tone": one of {tone_options},
+  "intent_confidence": number 0.0-1.0,
+  "tone_confidence": number 0.0-1.0,
+  "risk_level": "low" | "medium" | "high",
+  "should_offer_skill": boolean,
+  "assistant_message": string
+}}
 
-    response = client.responses.create(
+Analyze the user's emotional state carefully and provide confidence scores based on clarity of emotional expression."""
+
+    response = client.chat.completions.create(
         model="gpt-4o-mini",
-        input=[
-            {"role": "system", "content": SYSTEM_PROMPT},
+        messages=[
+            {"role": "system", "content": SYSTEM_PROMPT + "\n\n" + schema_prompt},
             {"role": "system", "content": "Coping skill cards (use only these):\n\n" + rag_context},
             {"role": "user", "content": user_message},
         ],
-        text={
-            "format": {
-                "name": "coach_output",
-                "type": "json_schema",
-                "schema": schema_to_send,
-            }
-        },
+        response_format={"type": "json_object"},
+        logprobs=True,
+        top_logprobs=20  # Get top 20 tokens to see competing emotions
     )
 
-    # The Responses API returns structured content; prefer using response.output_parsed when available,
-    # otherwise fall back to parsing output_text.
+    # Parse the response and extract logprobs for confidence
     parsed = None
     try:
-        parsed = response.output_parsed
-    except Exception:
-        parsed = None
-
-    if parsed is None:
-        raw = response.output_text
-        return json.loads(raw)
-    return parsed
+        content = response.choices[0].message.content
+        result = json.loads(content)
+        
+        # Extract REAL confidence from logprobs by finding the specific tokens for intent and tone
+        if response.choices[0].logprobs and response.choices[0].logprobs.content:
+            import math
+            
+            logprobs_content = response.choices[0].logprobs.content
+            
+            # Find the specific tokens for intent and tone values in the JSON
+            intent_value = result.get("intent", "")
+            tone_value = result.get("tone", "")
+            
+            intent_confidence = None
+            tone_confidence = None
+            
+            # Search through tokens to find where intent and tone appear
+            content_str = content.lower()
+            
+            for i, token_data in enumerate(logprobs_content):
+                token_text = token_data.token.lower().strip().strip('"').strip(',')
+                
+                # Check if this token matches our intent value
+                if intent_value and token_text == intent_value.lower():
+                    # This is the intent token - use its logprob
+                    if token_data.logprob is not None and intent_confidence is None:
+                        intent_confidence = math.exp(token_data.logprob)
+                
+                # Check if this token matches our tone value  
+                if tone_value and token_text == tone_value.lower():
+                    # This is the tone token - use its logprob
+                    if token_data.logprob is not None and tone_confidence is None:
+                        tone_confidence = math.exp(token_data.logprob)
+                
+                # Stop once we've found both
+                if intent_confidence is not None and tone_confidence is not None:
+                    break
+            
+            # Apply the specific confidence scores
+            if intent_confidence is not None:
+                result["intent_confidence"] = round(intent_confidence, 3)
+            if tone_confidence is not None:
+                result["tone_confidence"] = round(tone_confidence, 3)
+                
+    except Exception as e:
+        # Fallback if parsing fails
+        result = {
+            "intent": "stress",
+            "tone": "calm",
+            "intent_confidence": 0.5,
+            "tone_confidence": 0.5,
+            "risk_level": "low",
+            "should_offer_skill": True,
+            "assistant_message": "I'm having trouble analyzing that. Can you tell me more?"
+        }
+    
+    return result
 
 if user_text:
     # Add user message to session and render with custom avatar (avoid Streamlit default avatar)
@@ -523,6 +593,8 @@ if user_text:
         "turn_index": len(st.session_state["messages"]),
         "intent": result["intent"],
         "tone": result["tone"],
+        "intent_confidence": result.get("intent_confidence", 0.0),
+        "tone_confidence": result.get("tone_confidence", 0.0),
         "risk_level": result["risk_level"],
         "should_offer_skill": result["should_offer_skill"],
     })

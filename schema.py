@@ -122,6 +122,18 @@ COACH_OUTPUT_SCHEMA = {
                     "other"
                 ]
             },
+            "intent_confidence": {
+                "type": "number",
+                "description": "Confidence score for the intent classification (0.0 to 1.0)",
+                "minimum": 0.0,
+                "maximum": 1.0
+            },
+            "tone_confidence": {
+                "type": "number",
+                "description": "Confidence score for the tone classification (0.0 to 1.0)",
+                "minimum": 0.0,
+                "maximum": 1.0
+            },
             "risk_level": {
                 "type": "string",
                 "enum": ["low", "medium", "high"]
@@ -129,7 +141,7 @@ COACH_OUTPUT_SCHEMA = {
             "should_offer_skill": {"type": "boolean"},
             "assistant_message": {"type": "string"}
         },
-        "required": ["intent", "tone", "risk_level", "should_offer_skill", "assistant_message"]
+        "required": ["intent", "tone", "intent_confidence", "tone_confidence", "risk_level", "should_offer_skill", "assistant_message"]
     },
     "strict": True
 }
