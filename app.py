@@ -51,9 +51,48 @@ st.markdown(
 st.markdown(
     """
     <style>
-    .chat-bubble { padding:10px 14px; border-radius:12px; max-width:80%; display:inline-block; box-shadow:0 2px 6px rgba(0,0,0,0.06); font-size:14px; line-height:1.4; }
-    .chat-bubble.assistant { background:#f1f6ff; color:#08325a; border-radius:12px 12px 12px 4px; }
-    .chat-bubble.user { background:#e6fff1; color:#044d2c; border-radius:12px 12px 4px 12px; }
+    .chat-bubble { 
+        padding:11px 15px; 
+        border-radius:18px; 
+        max-width:80%; 
+        display:inline-block; 
+        box-shadow:0 2px 6px rgba(0,0,0,0.06); 
+        font-size:14px; 
+        line-height:1.4;
+        position: relative;
+    }
+    .chat-bubble.assistant { 
+        background:#f1f6ff; 
+        color:#08325a; 
+        border-bottom-left-radius: 6px;
+    }
+    .chat-bubble.assistant::before {
+        content: '';
+        position: absolute;
+        bottom: 3px;
+        left: -8px;
+        width: 19px;
+        height: 19px;
+        background: radial-gradient(circle at 100% 0%, transparent 0%, transparent 68%, #f1f6ff 68%);
+        transform: rotate(-45deg);
+        border-radius: 2px;
+    }
+    .chat-bubble.user { 
+        background:#e6fff1; 
+        color:#044d2c;
+        border-bottom-right-radius: 6px;
+    }
+    .chat-bubble.user::before {
+        content: '';
+        position: absolute;
+        bottom: 3px;
+        right: -8px;
+        width: 19px;
+        height: 19px;
+        background: radial-gradient(circle at 0% 0%, transparent 70%, transparent 70%, #e6fff1 70%);
+        transform: rotate(45deg);
+        border-radius: 2px;
+    }
     
     /* Emotion log expander boxes - light green to match buttons */
     [data-testid="stExpander"] details summary {
@@ -477,34 +516,40 @@ Analyze the user's emotional state carefully and provide confidence scores based
         content = response.choices[0].message.content
         result = json.loads(content)
         
-        # Extract REAL confidence from logprobs by finding the specific tokens for intent and tone
+        # Extract REAL confidence from logprobs by finding specific emotion tokens
         if response.choices[0].logprobs and response.choices[0].logprobs.content:
             import math
             
             logprobs_content = response.choices[0].logprobs.content
             
-            # Find the specific tokens for intent and tone values in the JSON
+            # Get the emotion values from the parsed result
             intent_value = result.get("intent", "")
             tone_value = result.get("tone", "")
             
             intent_confidence = None
             tone_confidence = None
             
-            # Search through tokens to find where intent and tone appear
-            content_str = content.lower()
-            
-            for i, token_data in enumerate(logprobs_content):
+            # Search through tokens to find where intent and tone values appear
+            for token_data in logprobs_content:
                 token_text = token_data.token.lower().strip().strip('"').strip(',')
                 
                 # Check if this token matches our intent value
-                if intent_value and token_text == intent_value.lower():
-                    # This is the intent token - use its logprob
+                if intent_value and token_text == intent_value.lower().replace('_', ''):
                     if token_data.logprob is not None and intent_confidence is None:
                         intent_confidence = math.exp(token_data.logprob)
                 
-                # Check if this token matches our tone value  
+                # Also check with underscore in case token preserves it
+                if intent_value and token_text == intent_value.lower():
+                    if token_data.logprob is not None and intent_confidence is None:
+                        intent_confidence = math.exp(token_data.logprob)
+                
+                # Check if this token matches our tone value
+                if tone_value and token_text == tone_value.lower().replace('_', ''):
+                    if token_data.logprob is not None and tone_confidence is None:
+                        tone_confidence = math.exp(token_data.logprob)
+                
+                # Also check with underscore
                 if tone_value and token_text == tone_value.lower():
-                    # This is the tone token - use its logprob
                     if token_data.logprob is not None and tone_confidence is None:
                         tone_confidence = math.exp(token_data.logprob)
                 
@@ -555,6 +600,62 @@ if user_text:
         _render_message_with_avatar({"role": "assistant", "content": bot})
         #st.stop()
 
+    # Show typing indicator while processing
+    typing_placeholder = st.empty()
+    with typing_placeholder:
+        st.markdown(
+            """
+            <style>
+            @keyframes typing-dot {
+                0%, 60%, 100% { opacity: 0.3; }
+                30% { opacity: 1; }
+            }
+            .typing-container {
+                display: flex;
+                align-items: center;
+                gap: 8px;
+                padding: 12px 0;
+            }
+            .typing-text {
+                color: #666;
+                font-style: italic;
+                font-size: 14px;
+                line-height: 1.4;
+            }
+            .typing-dots {
+                display: flex;
+                gap: 4px;
+                align-items: center;
+            }
+            .typing-dot {
+                width: 8px;
+                height: 8px;
+                background-color: #7fc9a8;
+                border-radius: 50%;
+                animation: typing-dot 1.4s infinite;
+            }
+            .typing-dot:nth-child(1) {
+                animation-delay: 0s;
+            }
+            .typing-dot:nth-child(2) {
+                animation-delay: 0.2s;
+            }
+            .typing-dot:nth-child(3) {
+                animation-delay: 0.4s;
+            }
+            </style>
+            <div class='typing-container'>
+                <span class='typing-text'>juno is typing</span>
+                <div class='typing-dots'>
+                    <span class='typing-dot'></span>
+                    <span class='typing-dot'></span>
+                    <span class='typing-dot'></span>
+                </div>
+            </div>
+            """,
+            unsafe_allow_html=True
+        )
+    
     # First pass: call model with general context to get intent
     # Use a broad skill card selection initially
     initial_intent = cheap_intent_heuristic(user_text)
@@ -563,6 +664,9 @@ if user_text:
     
     # Call model to get structured response with proper intent classification
     result = call_model(user_text, initial_context)
+    
+    # Clear typing indicator
+    typing_placeholder.empty()
     
     # Use the model's intent for session state and potential re-retrieval
     model_intent = result.get("intent", "stress")
