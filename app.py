@@ -211,13 +211,12 @@ if st.session_state.get("page") == "emotions":
         
         return emotions
     
-    # Filter to current session only and exclude casual conversations
+    # Filter to current session only (show all messages including casual)
     emotion_logs = load_emotion_logs()
     current_session_id = st.session_state.get("session_id", "")
     session_emotions = [
         e for e in emotion_logs 
-        if e["session_id"] == current_session_id 
-        and e["intent"] not in ["other", "casual"]
+        if e["session_id"] == current_session_id
     ]
     
     if not session_emotions:
