@@ -18,29 +18,29 @@ from emotion_logger import log_turn
 load_dotenv()
 
 st.set_page_config(page_title="TeenMind Coach", page_icon="💬")
-# Custom button styling: make buttons look like blue rounded "bubbles".
+# Custom button styling: make buttons look like pastel green rounded "bubbles".
 # Scoped to `.stButton > button:first-child` so it primarily affects the left/top button.
 st.markdown(
     """
     <style>
-    /* primary bubble button style */
+    /* primary bubble button style - pastel green */
     div.stButton > button:first-child {
-        background-color: #1E90FF;
-        color: white;
+        background-color: #B4E7CE;
+        color: #2d5f4a;
         border: none;
         border-radius: 24px;
         padding: 8px 18px;
-        box-shadow: 0 6px 18px rgba(30,144,255,0.28);
+        box-shadow: 0 6px 18px rgba(180, 231, 206, 0.28);
         font-weight: 600;
         transition: background-color 0.12s ease-in-out, transform 0.08s ease;
     }
     div.stButton > button:first-child:hover {
-        background-color: #187bcd;
+        background-color: #9dd9ba;
         transform: translateY(-1px);
     }
     div.stButton > button:first-child:active {
         transform: translateY(0);
-        box-shadow: 0 3px 8px rgba(30,144,255,0.22);
+        box-shadow: 0 3px 8px rgba(180, 231, 206, 0.22);
     }
     </style>
     """,
@@ -54,6 +54,22 @@ st.markdown(
     .chat-bubble { padding:10px 14px; border-radius:12px; max-width:80%; display:inline-block; box-shadow:0 2px 6px rgba(0,0,0,0.06); font-size:14px; line-height:1.4; }
     .chat-bubble.assistant { background:#f1f6ff; color:#08325a; border-radius:12px 12px 12px 4px; }
     .chat-bubble.user { background:#e6fff1; color:#044d2c; border-radius:12px 12px 4px 12px; }
+    
+    /* Emotion log expander boxes - light green to match buttons */
+    [data-testid="stExpander"] details summary {
+        background-color: #B4E7CE !important;
+        border-radius: 8px !important;
+        color: #2d5f4a !important;
+        font-weight: 600 !important;
+        padding: 12px 16px !important;
+    }
+    [data-testid="stExpander"] details summary:hover {
+        background-color: #9dd9ba !important;
+    }
+    [data-testid="stExpander"] details {
+        border: 1px solid #B4E7CE !important;
+        border-radius: 8px !important;
+    }
     </style>
     """,
     unsafe_allow_html=True,
@@ -100,8 +116,17 @@ if "intent" not in st.session_state:
 
 # Sidebar controls
 # Top-of-sidebar: quick Home button
-if st.sidebar.button("Home", key="sidebar_home"):
+if st.sidebar.button("home", key="sidebar_home"):
     st.session_state["page"] = "home"
+    st.session_state["show_chat_header"] = False
+    try:
+        st.experimental_rerun()
+    except Exception:
+        pass
+
+# Emotions page button
+if st.sidebar.button("my emotions", key="sidebar_emotions"):
+    st.session_state["page"] = "emotions"
     st.session_state["show_chat_header"] = False
     try:
         st.experimental_rerun()
@@ -149,8 +174,145 @@ except Exception:
 # Load RAG cards once
 cards = load_cards()
 
+# Emotions analytics page
+if st.session_state.get("page") == "emotions":
+    st.title("Emotion Analytics")
+    st.markdown("Track your emotional journey during this session.")
+    
+    # Load emotion logs from chat_sessions.jsonl
+    def load_emotion_logs():
+        """Load and parse emotion data from chat_sessions.jsonl"""
+        import json
+        from pathlib import Path
+        from datetime import datetime
+        
+        log_path = Path("logs/chat_sessions.jsonl")
+        emotions = []
+        
+        if not log_path.exists():
+            return emotions
+        
+        try:
+            with open(log_path, "r", encoding="utf-8") as f:
+                for line in f:
+                    if line.strip():
+                        entry = json.loads(line)
+                        # Extract relevant fields
+                        emotions.append({
+                            "timestamp": entry.get("ts_utc", ""),
+                            "intent": entry.get("intent", "unknown"),
+                            "tone": entry.get("tone", "unknown"),
+                            "risk_level": entry.get("risk_level", "unknown"),
+                            "session_id": entry.get("session_id", ""),
+                            "turn_index": entry.get("turn_index", 0)
+                        })
+        except Exception as e:
+            st.error(f"Error loading emotion logs: {e}")
+        
+        return emotions
+    
+    # Filter to current session only and exclude casual conversations
+    emotion_logs = load_emotion_logs()
+    current_session_id = st.session_state.get("session_id", "")
+    session_emotions = [
+        e for e in emotion_logs 
+        if e["session_id"] == current_session_id 
+        and e["intent"] not in ["other", "casual"]
+    ]
+    
+    if not session_emotions:
+        st.info("No emotion data yet for this session. Start chatting to track your emotions!")
+    else:
+        st.subheader(f"Emotion Log ({len(session_emotions)} interactions)")
+        
+        # Display each logged emotion
+        for idx, emotion in enumerate(session_emotions, 1):
+            # Parse timestamp for display and convert UTC to EST
+            try:
+                from datetime import datetime, timezone, timedelta
+                # Parse the UTC timestamp
+                dt_utc = datetime.fromisoformat(emotion["timestamp"].replace("Z", "+00:00"))
+                # Convert to EST (UTC-5)
+                est_offset = timedelta(hours=-5)
+                dt_est = dt_utc.astimezone(timezone(est_offset))
+                time_str = dt_est.strftime("%I:%M %p on %b %d, %Y") + " EST"
+            except:
+                time_str = emotion["timestamp"]
+            
+            # Create an expandable card for each emotion entry
+            with st.expander(f"interaction #{idx} - {time_str}", expanded=(idx == len(session_emotions))):
+                col1, col2 = st.columns(2)
+                
+                with col1:
+                    st.markdown("**Primary Emotion (Intent)**")
+                    # Map technical names to user-friendly display
+                    intent = emotion["intent"]
+                    display_intent = intent.replace('_', ' ').title()
+                    if intent in ["other", "casual"]:
+                        display_intent = "Casual Chat"
+                    confidence = "High" if intent not in ["other", "casual"] else "Medium"
+                    st.markdown(f" **{display_intent}** ({confidence} confidence)")
+                    
+                with col2:
+                    st.markdown("**Emotional Tone**")
+                    tone = emotion["tone"]
+                    display_tone = tone.replace('_', ' ').title()
+                    if tone in ["other", "casual"]:
+                        display_tone = "Neutral"
+                    tone_confidence = "High" if tone not in ["other", "casual"] else "Medium"
+                    st.markdown(f"**{display_tone}** ({tone_confidence} confidence)")
+                
+                st.markdown("**Risk Assessment**")
+                risk_color = {"low": "🟢", "moderate": "🟡", "high": "🔴"}.get(emotion["risk_level"].lower(), "⚪")
+                st.markdown(f"{risk_color} **{emotion['risk_level'].capitalize()}** risk level")
+        
+        # Summary statistics
+        st.divider()
+        st.subheader("📈 Session Summary")
+        
+        col1, col2, col3 = st.columns(3)
+        
+        with col1:
+            # Most common intent (user-friendly display)
+            from collections import Counter
+            intent_counts = Counter([e["intent"] for e in session_emotions])
+            most_common = intent_counts.most_common(1)[0] if intent_counts else ("none", 0)
+            display_emotion = most_common[0].replace('_', ' ').title()
+            st.metric("Most Common Emotion", display_emotion, f"{most_common[1]} times")
+        
+        with col2:
+            # Average risk level (simplified)
+            risk_levels = [e["risk_level"] for e in session_emotions]
+            high_risk_count = sum(1 for r in risk_levels if r.lower() == "high")
+            st.metric("High Risk Moments", high_risk_count)
+        
+        with col3:
+            # Total interactions
+            st.metric("Total Interactions", len(session_emotions))
+    
+    # Button to return to chat
+    if st.button("💬 Back to Chat", key="emotions_to_chat"):
+        st.session_state["page"] = "chat"
+        st.session_state["show_chat_header"] = True
+        try:
+            st.experimental_rerun()
+        except Exception:
+            pass
+    st.stop()
+
 # Simple Home page: short welcome and a button to go to the chat
 if st.session_state.get("page", "chat") == "home":
+    # Apply baby pink background only to home page
+    st.markdown(
+        """
+        <style>
+        .stApp {
+            background-color: #FFE8F0;
+        }
+        </style>
+        """,
+        unsafe_allow_html=True
+    )
     st.title("Home")
     st.markdown(
         """
