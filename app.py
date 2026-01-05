@@ -284,18 +284,30 @@ if st.session_state.get("page") == "emotions":
                 col1, col2 = st.columns(2)
                 
                 with col1:
-                    st.markdown("**Primary Emotion (Intent)**")
+                    st.markdown("**Primary Emotion**")
                     # Map technical names to user-friendly display
                     intent = emotion["intent"]
                     display_intent = intent.replace('_', ' ').title()
                     if intent in ["other", "casual"]:
                         display_intent = "Casual Chat"
                     
-                    # Display model's confidence score
+                    # Display model's confidence score with color-coded highlight
                     intent_conf = emotion.get("intent_confidence", 0.0)
                     confidence_pct = int(intent_conf * 100)
-                    st.markdown(f" **{display_intent}**")
-                    st.caption(f"Confidence: {confidence_pct}%")
+                    
+                    # Determine background and text colors based on confidence level
+                    if confidence_pct <= 50:
+                        bg_color = "rgba(255, 204, 204, 0.3)"  # translucent light red
+                        text_color = "#cc0000"  # darker red
+                    elif confidence_pct <= 79:
+                        bg_color = "rgba(255, 229, 180, 0.3)"  # translucent light orange
+                        text_color = "#cc7a00"  # darker orange
+                    else:
+                        bg_color = "rgba(212, 241, 212, 0.3)"  # translucent light green
+                        text_color = "#2d7a2d"  # darker green
+                    
+                    st.markdown(f"{display_intent}")
+                    st.markdown(f"<span style='background-color: {bg_color}; color: {text_color}; padding: 2px 8px; border-radius: 4px; font-size: 0.85em; font-weight: 500;'>Confidence: {confidence_pct}%</span>", unsafe_allow_html=True)
                     
                 with col2:
                     st.markdown("**Emotional Tone**")
@@ -304,11 +316,23 @@ if st.session_state.get("page") == "emotions":
                     if tone in ["other", "casual"]:
                         display_tone = "Neutral"
                     
-                    # Display model's confidence score
+                    # Display model's confidence score with color-coded highlight
                     tone_conf = emotion.get("tone_confidence", 0.0)
                     tone_confidence_pct = int(tone_conf * 100)
-                    st.markdown(f"**{display_tone}**")
-                    st.caption(f"Confidence: {tone_confidence_pct}%")
+                    
+                    # Determine background and text colors based on confidence level
+                    if tone_confidence_pct <= 50:
+                        bg_color = "rgba(255, 204, 204, 0.3)"  # translucent light red
+                        text_color = "#cc0000"  # darker red
+                    elif tone_confidence_pct <= 79:
+                        bg_color = "rgba(255, 229, 180, 0.3)"  # translucent light orange
+                        text_color = "#cc7a00"  # darker orange
+                    else:
+                        bg_color = "rgba(212, 241, 212, 0.3)"  # translucent light green
+                        text_color = "#2d7a2d"  # darker green
+                    
+                    st.markdown(f"{display_tone}")
+                    st.markdown(f"<span style='background-color: {bg_color}; color: {text_color}; padding: 2px 8px; border-radius: 4px; font-size: 0.85em; font-weight: 500;'>Confidence: {tone_confidence_pct}%</span>", unsafe_allow_html=True)
                 
                 st.markdown("**Risk Assessment**")
                 risk_color = {"low": "🟢", "moderate": "🟡", "high": "🔴"}.get(emotion["risk_level"].lower(), "⚪")
