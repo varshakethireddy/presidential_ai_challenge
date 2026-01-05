@@ -439,20 +439,6 @@ for msg in st.session_state["messages"]:
 
 user_text = st.chat_input("type a message…")
 
-#delete later!!
-def cheap_intent_heuristic(text: str) -> str:
-    """Day-1 intent detector. Replace later with a trained classifier."""
-    t = text.lower()
-    if any(w in t for w in ["panic", "anxious", "anxiety", "scared", "heart racing"]):
-        return "anxiety"
-    if any(w in t for w in ["sad", "depressed", "down", "hopeless", "lonely"]):
-        return "sadness"
-    if any(w in t for w in ["sleep", "insomnia", "can't sleep", "tired"]):
-        return "sleep"
-    if any(w in t for w in ["fight", "argument", "friend", "drama", "parents"]):
-        return "conflict"
-    return "insufficient information"
-
 def call_model(user_message: str, rag_context: str) -> str:
     api_key = os.getenv("OPENAI_API_KEY")
     if not api_key:
@@ -656,10 +642,9 @@ if user_text:
             unsafe_allow_html=True
         )
     
-    # First pass: call model with general context to get intent
-    # Use a broad skill card selection initially
-    initial_intent = cheap_intent_heuristic(user_text)
-    initial_cards = retrieve_cards(cards, intent=initial_intent, k=2)
+    # Retrieve a broader set of skill cards for context
+    # The AI will determine the actual intent and select relevant skills
+    initial_cards = retrieve_cards(cards, intent="stress", k=3)  # Use broader retrieval
     initial_context = format_cards_for_prompt(initial_cards)
     
     # Call model to get structured response with proper intent classification
@@ -668,12 +653,11 @@ if user_text:
     # Clear typing indicator
     typing_placeholder.empty()
     
-    # Use the model's intent for session state and potential re-retrieval
+    # Use the model's intent for session state
     model_intent = result.get("intent", "stress")
     st.session_state["intent"] = model_intent
 
     if dev_mode:
-        st.sidebar.success(f"Heuristic intent: {initial_intent}")
         st.sidebar.success(f"Model intent: {model_intent}")
         st.sidebar.write("Retrieved cards:")
         for c in initial_cards:
