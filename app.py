@@ -119,24 +119,17 @@ st.markdown(
 # Ensure page default is set before rendering header controls
 if "page" not in st.session_state:
     st.session_state["page"] = "home"
-# Control whether the chat header (title + reset button) is visible.
-# Default to False so Home doesn't show the chat header.
-if "show_chat_header" not in st.session_state:
-    st.session_state["show_chat_header"] = False
+
 # Only show the top-row reset button and page title when on the chat page
-if st.session_state.get("page", "chat") == "chat":
+if st.session_state.get("page") == "chat":
     row_col1, row_col2 = st.columns([3, 7])
     with row_col1:
         if st.button("reset chat", key="reset_chat"):
             # Reset only the on-screen messages for this session
             st.session_state["messages"] = [
-                {"role": "assistant", "content": "Hey — I’m here with you. What’s been going on today?"}
+                {"role": "assistant", "content": "Hey — I'm here with you. What's been going on today?"}
             ]
-            # Try to rerun the app to reflect the cleared UI immediately; safe for older Streamlit
-            try:
-                st.experimental_rerun()
-            except Exception:
-                pass
+            st.rerun()
     with row_col2:
         # leave space to keep the button visually on the left/top
         pass
@@ -160,38 +153,22 @@ if "intent" not in st.session_state:
 # Top-of-sidebar: quick Home button
 if st.sidebar.button("home", key="sidebar_home"):
     st.session_state["page"] = "home"
-    st.session_state["show_chat_header"] = False
-    try:
-        st.experimental_rerun()
-    except Exception:
-        pass
+    st.rerun()
 
 # Emotions page button
 if st.sidebar.button("my emotions", key="sidebar_emotions"):
     st.session_state["page"] = "emotions"
-    st.session_state["show_chat_header"] = False
-    try:
-        st.experimental_rerun()
-    except Exception:
-        pass
+    st.rerun()
 
 # Timeline page button
 if st.sidebar.button("timeline", key="sidebar_timeline"):
     st.session_state["page"] = "timeline"
-    st.session_state["show_chat_header"] = False
-    try:
-        st.experimental_rerun()
-    except Exception:
-        pass
+    st.rerun()
 
 # Info page button
 if st.sidebar.button("interact", key="sidebar_info"):
     st.session_state["page"] = "info"
-    st.session_state["show_chat_header"] = False
-    try:
-        st.experimental_rerun()
-    except Exception:
-        pass
+    st.rerun()
 
 st.sidebar.header("sidebar")
 st.sidebar.write("This demo does not store conversations.")
@@ -267,18 +244,31 @@ if st.session_state.get("page", "chat") == "home":
     with open('sprout.gif', 'rb') as f:
         gif_data = base64.b64encode(f.read()).decode()
     
+    # Load custom font
+    with open('fonts/Chicken Rice.otf', 'rb') as f:
+        font_data = base64.b64encode(f.read()).decode()
+    
     st.markdown(
         f"""
         <style>
+        @font-face {{
+            font-family: 'ChickenRice';
+            src: url(data:font/opentype;base64,{font_data}) format('opentype');
+            font-weight: normal;
+            font-style: normal;
+        }}
         .home-title-container {{
             position: relative;
             display: inline-block;
         }}
         .home-title-text {{
-            font-size: 3rem;
-            font-weight: 600;
+            font-family: 'ChickenRice', cursive, sans-serif !important;
+            font-size: 3.5rem;
+            font-weight: normal;
             margin: 0;
             padding-left: 0;
+            position: relative;
+            z-index: 2;
         }}
         .sprout-overlay {{
             position: absolute;
@@ -287,11 +277,12 @@ if st.session_state.get("page", "chat") == "home":
             width: 120px;
             height: 120px;
             pointer-events: none;
+            z-index: 1;
         }}
         </style>
         <div class="home-title-container">
             <img src="data:image/gif;base64,{gif_data}" class="sprout-overlay">
-            <h1 class="home-title-text">Home</h1>
+            <h1 class="home-title-text">juno ai</h1>
         </div>
         """,
         unsafe_allow_html=True
@@ -299,7 +290,7 @@ if st.session_state.get("page", "chat") == "home":
     
     st.markdown(
         """
-        **Welcome to TeenMind Coach** — a friendly place to learn quick coping skills,
+        **Welcome to juno ai!** — a friendly place to learn quick coping skills,
         find calming exercises, and get directed to help if you're in crisis.
 
         This is a placeholder home page you can edit later.
@@ -308,11 +299,7 @@ if st.session_state.get("page", "chat") == "home":
     st.write("Helpful links and project info can go here.")
     if st.button("💬 Go to Chat", key="home_go_chat"):
         st.session_state["page"] = "chat"
-        st.session_state["show_chat_header"] = True
-        try:
-            st.experimental_rerun()
-        except Exception:
-            pass
+        st.rerun()
     st.stop()
 
 # Render chat history
@@ -363,16 +350,6 @@ def _render_message_with_avatar(msg: dict):
         safe = safe.replace('\n', '<br/>')
         bubble_class = 'assistant' if role == 'assistant' else 'user'
         st.markdown(f'<div class="chat-bubble {bubble_class}">{safe}</div>', unsafe_allow_html=True)
-
-previous_role = None
-for msg in st.session_state["messages"]:
-    # Add a subtle divider when the speaker changes (helps separate turns on small screens)
-    if previous_role and previous_role != msg.get("role"):
-        st.markdown("<hr style='border:none;border-top:1px solid #eee;margin:8px 0;'/>", unsafe_allow_html=True)
-    _render_message_with_avatar(msg)
-    previous_role = msg.get("role")
-
-user_text = st.chat_input("type a message…")
 
 def call_model(user_message: str, rag_context: str) -> str:
     api_key = os.getenv("OPENAI_API_KEY")
@@ -498,128 +475,140 @@ Analyze the user's emotional state carefully and provide confidence scores based
     
     return result
 
-if user_text:
-    # Add user message to session and render with custom avatar (avoid Streamlit default avatar)
-    st.session_state["messages"].append({"role": "user", "content": user_text})
-    # If the previous message was from a different role, show a divider first
-    if len(st.session_state["messages"]) >= 2:
-        prev = st.session_state["messages"][-2]
-        if prev.get("role") != "user":
+# Only render chat interface when on chat page
+if st.session_state.get("page") == "chat":
+    previous_role = None
+    for msg in st.session_state["messages"]:
+        # Add a subtle divider when the speaker changes (helps separate turns on small screens)
+        if previous_role and previous_role != msg.get("role"):
             st.markdown("<hr style='border:none;border-top:1px solid #eee;margin:8px 0;'/>", unsafe_allow_html=True)
-    _render_message_with_avatar({"role": "user", "content": user_text})
+        _render_message_with_avatar(msg)
+        previous_role = msg.get("role")
 
-    # Safety first
-    crisis_check_bool = crisis_check(user_text)
-    if crisis_check_bool:
-        bot = crisis_response()
-        st.session_state["messages"].append({"role": "assistant", "content": bot})
-        # Divider if previous role was different
+    user_text = st.chat_input("type a message…")
+
+    if user_text:
+        # Add user message to session and render with custom avatar (avoid Streamlit default avatar)
+        st.session_state["messages"].append({"role": "user", "content": user_text})
+        # If the previous message was from a different role, show a divider first
         if len(st.session_state["messages"]) >= 2:
             prev = st.session_state["messages"][-2]
-            if prev.get("role") != "assistant":
+            if prev.get("role") != "user":
                 st.markdown("<hr style='border:none;border-top:1px solid #eee;margin:8px 0;'/>", unsafe_allow_html=True)
-        _render_message_with_avatar({"role": "assistant", "content": bot})
-        #st.stop()
+        _render_message_with_avatar({"role": "user", "content": user_text})
 
-    # Show typing indicator while processing
-    typing_placeholder = st.empty()
-    with typing_placeholder:
-        st.markdown(
-            """
-            <style>
-            @keyframes typing-dot {
-                0%, 60%, 100% { opacity: 0.3; }
-                30% { opacity: 1; }
-            }
-            .typing-container {
-                display: flex;
-                align-items: center;
-                gap: 8px;
-                padding: 12px 0;
-            }
-            .typing-text {
-                color: #666;
-                font-style: italic;
-                font-size: 14px;
-                line-height: 1.4;
-            }
-            .typing-dots {
-                display: flex;
-                gap: 4px;
-                align-items: center;
-            }
-            .typing-dot {
-                width: 8px;
-                height: 8px;
-                background-color: #7fc9a8;
-                border-radius: 50%;
-                animation: typing-dot 1.4s infinite;
-            }
-            .typing-dot:nth-child(1) {
-                animation-delay: 0s;
-            }
-            .typing-dot:nth-child(2) {
-                animation-delay: 0.2s;
-            }
-            .typing-dot:nth-child(3) {
-                animation-delay: 0.4s;
-            }
-            </style>
-            <div class='typing-container'>
-                <span class='typing-text'>juno is typing</span>
-                <div class='typing-dots'>
-                    <span class='typing-dot'></span>
-                    <span class='typing-dot'></span>
-                    <span class='typing-dot'></span>
+        # Safety first
+        crisis_check_bool = crisis_check(user_text)
+        if crisis_check_bool:
+            bot = crisis_response()
+            st.session_state["messages"].append({"role": "assistant", "content": bot})
+            # Divider if previous role was different
+            if len(st.session_state["messages"]) >= 2:
+                prev = st.session_state["messages"][-2]
+                if prev.get("role") != "assistant":
+                    st.markdown("<hr style='border:none;border-top:1px solid #eee;margin:8px 0;'/>", unsafe_allow_html=True)
+            _render_message_with_avatar({"role": "assistant", "content": bot})
+            #st.stop()
+
+        # Show typing indicator while processing
+        typing_placeholder = st.empty()
+        with typing_placeholder:
+            st.markdown(
+                """
+                <style>
+                @keyframes typing-dot {
+                    0%, 60%, 100% { opacity: 0.3; }
+                    30% { opacity: 1; }
+                }
+                .typing-container {
+                    display: flex;
+                    align-items: center;
+                    gap: 8px;
+                    padding: 12px 0;
+                }
+                .typing-text {
+                    color: #666;
+                    font-style: italic;
+                    font-size: 14px;
+                    line-height: 1.4;
+                }
+                .typing-dots {
+                    display: flex;
+                    gap: 4px;
+                    align-items: center;
+                }
+                .typing-dot {
+                    width: 8px;
+                    height: 8px;
+                    background-color: #7fc9a8;
+                    border-radius: 50%;
+                    animation: typing-dot 1.4s infinite;
+                }
+                .typing-dot:nth-child(1) {
+                    animation-delay: 0s;
+                }
+                .typing-dot:nth-child(2) {
+                    animation-delay: 0.2s;
+                }
+                .typing-dot:nth-child(3) {
+                    animation-delay: 0.4s;
+                }
+                </style>
+                <div class='typing-container'>
+                    <span class='typing-text'>juno is typing</span>
+                    <div class='typing-dots'>
+                        <span class='typing-dot'></span>
+                        <span class='typing-dot'></span>
+                        <span class='typing-dot'></span>
+                    </div>
                 </div>
-            </div>
-            """,
-            unsafe_allow_html=True
-        )
-    
-    # Retrieve a broader set of skill cards for context
-    # The AI will determine the actual intent and select relevant skills
-    initial_cards = retrieve_cards(cards, intent="stress", k=3)  # Use broader retrieval
-    initial_context = format_cards_for_prompt(initial_cards)
-    
-    # Call model to get structured response with proper intent classification
-    result = call_model(user_text, initial_context)
-    
-    # Clear typing indicator
-    typing_placeholder.empty()
-    
-    # Use the model's intent for session state
-    model_intent = result.get("intent", "stress")
-    st.session_state["intent"] = model_intent
+                """,
+                unsafe_allow_html=True
+            )
+        
+        # Retrieve a broader set of skill cards for context
+        # The AI will determine the actual intent and select relevant skills
+        initial_cards = retrieve_cards(cards, intent="stress", k=3)  # Use broader retrieval
+        initial_context = format_cards_for_prompt(initial_cards)
+        
+        # Call model to get structured response with proper intent classification
+        result = call_model(user_text, initial_context)
+        
+        # Clear typing indicator
+        typing_placeholder.empty()
+        
+        # Use the model's intent for session state
+        model_intent = result.get("intent", "stress")
+        st.session_state["intent"] = model_intent
 
-    if dev_mode:
-        st.sidebar.success(f"Model intent: {model_intent}")
-        st.sidebar.write("Retrieved cards:")
-        for c in initial_cards:
-            st.sidebar.write(f"- {c['title']}")
-    # Show assistant message to user using custom avatar renderer
-    bot_text = result["assistant_message"]
-    if not crisis_check_bool:
-        st.session_state["messages"].append({"role": "assistant", "content": bot_text})
-        # Divider if previous role was different
-        if len(st.session_state["messages"]) >= 2:
-            prev = st.session_state["messages"][-2]
-            if prev.get("role") != "assistant":
-                st.markdown("<hr style='border:none;border-top:1px solid #eee;margin:8px 0;'/>", unsafe_allow_html=True)
-        _render_message_with_avatar({"role": "assistant", "content": bot_text})
+        if dev_mode:
+            st.sidebar.success(f"Model intent: {model_intent}")
+            st.sidebar.write("Retrieved cards:")
+            for c in initial_cards:
+                st.sidebar.write(f"- {c['title']}")
+        # Show assistant message to user using custom avatar renderer
+        bot_text = result["assistant_message"]
+        if not crisis_check_bool:
+            st.session_state["messages"].append({"role": "assistant", "content": bot_text})
+            # Divider if previous role was different
+            if len(st.session_state["messages"]) >= 2:
+                prev = st.session_state["messages"][-2]
+                if prev.get("role") != "assistant":
+                    st.markdown("<hr style='border:none;border-top:1px solid #eee;margin:8px 0;'/>", unsafe_allow_html=True)
+            _render_message_with_avatar({"role": "assistant", "content": bot_text})
 
-    
-  
-    # Log structured fields (NO raw user text stored)
-    log_turn({
-        "session_id": st.session_state["session_id"],
-        "turn_index": len(st.session_state["messages"]),
-        "intent": result["intent"],
-        "tone": result["tone"],
-        "intent_confidence": result.get("intent_confidence", 0.0),
-        "tone_confidence": result.get("tone_confidence", 0.0),
-        "risk_level": result["risk_level"],
-        "should_offer_skill": result["should_offer_skill"],
-    })
+        
+      
+        # Log structured fields (NO raw user text stored)
+        log_turn({
+            "session_id": st.session_state["session_id"],
+            "turn_index": len(st.session_state["messages"]),
+            "intent": result["intent"],
+            "tone": result["tone"],
+            "intent_confidence": result.get("intent_confidence", 0.0),
+            "tone_confidence": result.get("tone_confidence", 0.0),
+            "risk_level": result["risk_level"],
+            "should_offer_skill": result["should_offer_skill"],
+        })
 
 
