@@ -7,7 +7,7 @@ import plotly.graph_objects as go
 def render_timeline():
     """Render the emotional timeline page"""
     st.title("Emotional Timeline")
-    st.caption("Track your emotional journey over time")
+    st.markdown("Track your emotional journey over time.")
     
     # Load emotion logs for current session
     def load_timeline_emotions():
@@ -48,7 +48,10 @@ def render_timeline():
     emotions = load_timeline_emotions()
     
     if not emotions:
-        st.info("No emotion data yet. Start chatting with Juno to see your emotional timeline!")
+        st.markdown(
+            '<div style="background-color: #ffe0f0; color: #d63384; padding: 12px; border-radius: 8px; border-left: 4px solid #d63384;"> No emotion data yet. Start chatting with Juno to see your emotional timeline!</div>',
+            unsafe_allow_html=True
+        )
     else:
         timestamps = []
         intent_values = []
@@ -145,6 +148,9 @@ def render_timeline():
                 st.warning("📈 Your emotional intensity has increased lately. Remember, I'm here to help.")
             else:
                 st.info("➡️ Your emotional state has been relatively stable")
+    
+    st.write("")
+    st.write("")
     
     if st.button("💬 Back to Chat", key="timeline_to_chat"):
         st.session_state["page"] = "chat"

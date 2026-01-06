@@ -271,7 +271,10 @@ if st.session_state.get("page") == "emotions":
     ]
     
     if not session_emotions:
-        st.info("No emotion data yet for this session. Start chatting to track your emotions!")
+        st.markdown(
+            '<div style="background-color: #ffe0f0; color: #d63384; padding: 12px; border-radius: 8px; border-left: 4px solid #d63384;"> No emotion data yet for this session. Start chatting to track your emotions!</div>',
+            unsafe_allow_html=True
+        )
     else:
         st.subheader(f"Emotion Log ({len(session_emotions)} interactions)")
         
@@ -371,6 +374,9 @@ if st.session_state.get("page") == "emotions":
             st.metric("Total Interactions", len(session_emotions))
     
     # Button to return to chat
+    st.write("")
+    st.write("")
+    
     if st.button("💬 Back to Chat", key="emotions_to_chat"):
         st.session_state["page"] = "chat"
         st.session_state["show_chat_header"] = True
