@@ -8,6 +8,7 @@ from safety import crisis_check, crisis_response
 from rag import load_cards, retrieve_cards
 from prompts import SYSTEM_PROMPT, format_cards_for_prompt
 from schema import COACH_OUTPUT_SCHEMA
+from timeline_page import render_timeline
 import json
 import html
 import base64
@@ -166,6 +167,15 @@ if st.sidebar.button("home", key="sidebar_home"):
 # Emotions page button
 if st.sidebar.button("my emotions", key="sidebar_emotions"):
     st.session_state["page"] = "emotions"
+    st.session_state["show_chat_header"] = False
+    try:
+        st.experimental_rerun()
+    except Exception:
+        pass
+
+# Timeline page button
+if st.sidebar.button("timeline", key="sidebar_timeline"):
+    st.session_state["page"] = "timeline"
     st.session_state["show_chat_header"] = False
     try:
         st.experimental_rerun()
@@ -368,6 +378,11 @@ if st.session_state.get("page") == "emotions":
             st.experimental_rerun()
         except Exception:
             pass
+    st.stop()
+
+# Timeline page
+if st.session_state.get("page") == "timeline":
+    render_timeline()
     st.stop()
 
 # Simple Home page: short welcome and a button to go to the chat
