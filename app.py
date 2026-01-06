@@ -10,6 +10,7 @@ from prompts import SYSTEM_PROMPT, format_cards_for_prompt
 from schema import COACH_OUTPUT_SCHEMA
 from timeline_page import render_timeline
 from emotions_page import render_emotions
+from info_page import render_info
 import json
 import html
 import base64
@@ -183,6 +184,15 @@ if st.sidebar.button("timeline", key="sidebar_timeline"):
     except Exception:
         pass
 
+# Info page button
+if st.sidebar.button("interact", key="sidebar_info"):
+    st.session_state["page"] = "info"
+    st.session_state["show_chat_header"] = False
+    try:
+        st.experimental_rerun()
+    except Exception:
+        pass
+
 st.sidebar.header("sidebar")
 st.sidebar.write("This demo does not store conversations.")
 dev_mode = st.sidebar.checkbox("Developer mode (show intent)", value=False)
@@ -234,6 +244,11 @@ if st.session_state.get("page") == "timeline":
     render_timeline()
     st.stop()
 
+# Info page
+if st.session_state.get("page") == "info":
+    render_info()
+    st.stop()
+
 # Simple Home page: short welcome and a button to go to the chat
 if st.session_state.get("page", "chat") == "home":
     # Apply baby pink background only to home page
@@ -247,7 +262,41 @@ if st.session_state.get("page", "chat") == "home":
         """,
         unsafe_allow_html=True
     )
-    st.title("Home")
+    # Display title with animated sprout gif overlay
+    import base64
+    with open('sprout.gif', 'rb') as f:
+        gif_data = base64.b64encode(f.read()).decode()
+    
+    st.markdown(
+        f"""
+        <style>
+        .home-title-container {{
+            position: relative;
+            display: inline-block;
+        }}
+        .home-title-text {{
+            font-size: 3rem;
+            font-weight: 600;
+            margin: 0;
+            padding-left: 0;
+        }}
+        .sprout-overlay {{
+            position: absolute;
+            top: -20px;
+            left: -10px;
+            width: 120px;
+            height: 120px;
+            pointer-events: none;
+        }}
+        </style>
+        <div class="home-title-container">
+            <img src="data:image/gif;base64,{gif_data}" class="sprout-overlay">
+            <h1 class="home-title-text">Home</h1>
+        </div>
+        """,
+        unsafe_allow_html=True
+    )
+    
     st.markdown(
         """
         **Welcome to TeenMind Coach** — a friendly place to learn quick coping skills,
