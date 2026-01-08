@@ -38,7 +38,7 @@ def load_document(file_path: str) -> str:
         return ""
     return ""
 
-def load_all_documents(data_dir: str = "data/Data sets") -> List[Dict[str, Any]]:
+def load_all_documents(data_dir: str = "data/teenage_research") -> List[Dict[str, Any]]:
     """Load all documents from the data directory"""
     global _documents_cache
     
