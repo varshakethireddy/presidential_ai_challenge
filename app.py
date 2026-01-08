@@ -21,7 +21,11 @@ from emotion_logger import log_turn
 
 load_dotenv()
 
-st.set_page_config(page_title="TeenMind Coach", page_icon="💬", initial_sidebar_state="collapsed")
+st.set_page_config(
+    page_title="TeenMind Coach", 
+    page_icon="💬", 
+    initial_sidebar_state="collapsed"
+)
 # Custom button styling: make buttons look like pastel green rounded "bubbles".
 # Scoped to `.stButton > button:first-child` so it primarily affects the left/top button.
 st.markdown(
@@ -113,6 +117,50 @@ st.markdown(
     [data-testid="stExpander"] details {
         border: 1px solid #A8D5BA !important;
         border-radius: 8px !important;
+    }
+    
+    /* Chat input styling - thicker inward border with green glow */
+    [data-testid="stChatInput"] {
+        border-radius: 24px !important;
+        box-shadow: inset 0 0 0 3px #8fc5a3, 0 0 20px rgba(143, 197, 163, 0.8) !important;
+    }
+    [data-testid="stChatInput"]:focus-within {
+        box-shadow: inset 0 0 0 3px #8fc5a3, 0 0 20px rgba(143, 197, 163, 0.8) !important;
+    }
+    [data-testid="stChatInput"] textarea {
+        border: none !important;
+    }
+    [data-testid="stChatInput"] textarea:focus {
+        outline: none !important;
+        border: none !important;
+        box-shadow: none !important;
+    }
+    /* Additional overrides for chat input focus states */
+    .stChatInputContainer {
+        border-radius: 24px !important;
+        box-shadow: inset 0 0 0 3px #8fc5a3, 0 0 20px rgba(143, 197, 163, 0.8) !important;
+    }
+    .stChatInputContainer:focus-within {
+        box-shadow: inset 0 0 0 3px #8fc5a3, 0 0 20px rgba(143, 197, 163, 0.8) !important;
+    }
+    .stChatInputContainer textarea:focus {
+        outline: none !important;
+        box-shadow: none !important;
+    }
+    /* Force override Streamlit's default focus ring */
+    [data-testid="stChatInput"] textarea:focus-visible {
+        outline: none !important;
+        outline-color: transparent !important;
+        outline-width: 0 !important;
+    }
+    [data-baseweb="textarea"] {
+        border: none !important;
+    }
+    [data-baseweb="textarea"]:focus,
+    [data-baseweb="textarea"]:focus-within,
+    [data-baseweb="textarea"]:active {
+        outline: none !important;
+        box-shadow: none !important;
     }
     </style>
     """,
@@ -338,14 +386,14 @@ if st.session_state.get("page", "chat") == "home":
     
     st.markdown(
         """
-        **Welcome to juno ai!** — a friendly place to learn quick coping skills,
+        **Welcome back!** — a friendly place to learn quick coping skills,
         find calming exercises, and get directed to help if you're in crisis.
 
         This is a placeholder home page you can edit later.
         """
     )
     st.write("Helpful links and project info can go here.")
-    if st.button("💬 Go to Chat", key="home_go_chat"):
+    if st.button("💬 chat now", key="home_go_chat"):
         st.session_state["page"] = "chat"
         st.rerun()
     
@@ -388,6 +436,7 @@ def _render_message_with_avatar(msg: dict):
                     st.markdown("💬")
             else:
                 st.markdown("💬")
+            st.markdown("<p style='text-align: center; font-size: 0.75rem; color: #6b8e7f; margin-top: 4px; margin-left: -10px;'>juno</p>", unsafe_allow_html=True)
         else:
             if user_avatar_bytes:
                 img_tag = _avatar_img_tag(user_avatar_bytes, width=48)
@@ -397,6 +446,7 @@ def _render_message_with_avatar(msg: dict):
                     st.markdown("🙂")
             else:
                 st.markdown("🙂")
+            st.markdown("<p style='text-align: center; font-size: 0.75rem; color: #6b8e7f; margin-top: 4px; margin-left: -10px;'>me</p>", unsafe_allow_html=True)
     with col_msg:
         # Escape user content to avoid HTML injection and preserve newlines
         safe = html.escape(content)
@@ -538,7 +588,8 @@ if st.session_state.get("page") == "chat":
         _render_message_with_avatar(msg)
         previous_role = msg.get("role")
 
-    user_text = st.chat_input("type a message…")
+    st.markdown("<br><br>", unsafe_allow_html=True)
+    user_text = st.chat_input("you can start anywhere...")
 
     if user_text:
         # Add user message to session and render with custom avatar (avoid Streamlit default avatar)
