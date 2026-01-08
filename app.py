@@ -5,8 +5,8 @@ from dotenv import load_dotenv
 from openai import OpenAI
 
 from safety import crisis_check, crisis_response
-from rag import load_cards, retrieve_cards
-from prompts import SYSTEM_PROMPT, format_cards_for_prompt
+from rag import load_cards, retrieve_cards, retrieve_combined_context
+from prompts import SYSTEM_PROMPT, format_cards_for_prompt, format_combined_context
 from schema import COACH_OUTPUT_SCHEMA
 from timeline_page import render_timeline
 from emotions_page import render_emotions
@@ -670,13 +670,24 @@ if st.session_state.get("page") == "chat":
                 unsafe_allow_html=True
             )
         
-        # Retrieve a broader set of skill cards for context
-        # The AI will determine the actual intent and select relevant skills
-        initial_cards = retrieve_cards(cards, intent="stress", k=3)  # Use broader retrieval
-        initial_context = format_cards_for_prompt(initial_cards)
+        # Retrieve both skill cards AND relevant documents from Google Drive
+        # The AI will use both sources to provide comprehensive support
+        context_data = retrieve_combined_context(
+            cards=cards,
+            user_message=user_text,
+            intent="stress",  # Initial intent, will be refined by model
+            k_cards=2,
+            k_docs=2
+        )
+        
+        # Format the combined context for the prompt
+        combined_context = format_combined_context(
+            skill_cards=context_data["skill_cards"],
+            documents=context_data["documents"]
+        )
         
         # Call model to get structured response with proper intent classification
-        result = call_model(user_text, initial_context)
+        result = call_model(user_text, combined_context)
         
         # Clear typing indicator
         typing_placeholder.empty()
@@ -687,9 +698,12 @@ if st.session_state.get("page") == "chat":
 
         if dev_mode:
             st.sidebar.success(f"Model intent: {model_intent}")
-            st.sidebar.write("Retrieved cards:")
-            for c in initial_cards:
+            st.sidebar.write("Retrieved skill cards:")
+            for c in context_data["skill_cards"]:
                 st.sidebar.write(f"- {c['title']}")
+            st.sidebar.write("Retrieved documents:")
+            for d in context_data["documents"]:
+                st.sidebar.write(f"- {d['title']} (similarity: {d.get('similarity', 0):.2f})")
         # Show assistant message to user using custom avatar renderer
         bot_text = result["assistant_message"]
         if not crisis_check_bool:
