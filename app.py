@@ -11,6 +11,7 @@ from schema import COACH_OUTPUT_SCHEMA
 from timeline_page import render_timeline
 from emotions_page import render_emotions
 from info_page import render_info
+from welcome_screen import show_welcome_screen
 import json
 import html
 import base64
@@ -20,7 +21,7 @@ from emotion_logger import log_turn
 
 load_dotenv()
 
-st.set_page_config(page_title="TeenMind Coach", page_icon="💬")
+st.set_page_config(page_title="TeenMind Coach", page_icon="💬", initial_sidebar_state="collapsed")
 # Custom button styling: make buttons look like pastel green rounded "bubbles".
 # Scoped to `.stButton > button:first-child` so it primarily affects the left/top button.
 st.markdown(
@@ -28,22 +29,23 @@ st.markdown(
     <style>
     /* primary bubble button style - pastel green */
     div.stButton > button:first-child {
-        background-color: #B4E7CE;
+        background-color: #A8D5BA;
         color: #2d5f4a;
         border: none;
         border-radius: 24px;
         padding: 8px 18px;
-        box-shadow: 0 6px 18px rgba(180, 231, 206, 0.28);
+        box-shadow: 0 6px 18px rgba(168, 213, 186, 0.28);
         font-weight: 600;
-        transition: background-color 0.12s ease-in-out, transform 0.08s ease;
+        transition: background-color 0.12s ease-in-out, transform 0.08s ease, box-shadow 0.12s ease-in-out;
     }
     div.stButton > button:first-child:hover {
-        background-color: #9dd9ba;
+        background-color: #8fc5a3;
         transform: translateY(-1px);
+        box-shadow: 0 0 20px rgba(168, 213, 186, 0.8);
     }
     div.stButton > button:first-child:active {
         transform: translateY(0);
-        box-shadow: 0 3px 8px rgba(180, 231, 206, 0.22);
+        box-shadow: 0 3px 8px rgba(168, 213, 186, 0.22);
     }
     </style>
     """,
@@ -99,29 +101,45 @@ st.markdown(
     
     /* Emotion log expander boxes - light green to match buttons */
     [data-testid="stExpander"] details summary {
-        background-color: #B4E7CE !important;
+        background-color: #A8D5BA !important;
         border-radius: 8px !important;
         color: #2d5f4a !important;
         font-weight: 600 !important;
         padding: 12px 16px !important;
     }
     [data-testid="stExpander"] details summary:hover {
-        background-color: #9dd9ba !important;
+        background-color: #8fc5a3 !important;
     }
     [data-testid="stExpander"] details {
-        border: 1px solid #B4E7CE !important;
+        border: 1px solid #A8D5BA !important;
         border-radius: 8px !important;
     }
     </style>
     """,
     unsafe_allow_html=True,
 )
+
+# Welcome screen state - check if it should be shown
+if "welcome_shown" not in st.session_state:
+    st.session_state["welcome_shown"] = False
+    st.session_state["show_welcome_overlay"] = True
+
 # Ensure page default is set before rendering header controls
 if "page" not in st.session_state:
     st.session_state["page"] = "home"
 
 # Only show the top-row reset button and page title when on the chat page
 if st.session_state.get("page") == "chat":
+    st.markdown(
+        """
+        <style>
+        .stApp {
+            background-color: #FAF7F5;
+        }
+        </style>
+        """,
+        unsafe_allow_html=True
+    )
     row_col1, row_col2 = st.columns([3, 7])
     with row_col1:
         if st.button("reset chat", key="reset_chat"):
@@ -213,27 +231,57 @@ cards = load_cards()
 
 # Emotions analytics page
 if st.session_state.get("page") == "emotions":
+    st.markdown(
+        """
+        <style>
+        .stApp {
+            background-color: #FAF7F5;
+        }
+        </style>
+        """,
+        unsafe_allow_html=True
+    )
     render_emotions()
     st.stop()
 
 # Timeline page
 if st.session_state.get("page") == "timeline":
+    st.markdown(
+        """
+        <style>
+        .stApp {
+            background-color: #FAF7F5;
+        }
+        </style>
+        """,
+        unsafe_allow_html=True
+    )
     render_timeline()
     st.stop()
 
 # Info page
 if st.session_state.get("page") == "info":
+    st.markdown(
+        """
+        <style>
+        .stApp {
+            background-color: #FAF7F5;
+        }
+        </style>
+        """,
+        unsafe_allow_html=True
+    )
     render_info()
     st.stop()
 
 # Simple Home page: short welcome and a button to go to the chat
 if st.session_state.get("page", "chat") == "home":
-    # Apply baby pink background only to home page
+    # Apply background to home page
     st.markdown(
         """
         <style>
         .stApp {
-            background-color: #FFE8F0;
+            background-color: #FAF7F5;
         }
         </style>
         """,
@@ -300,6 +348,11 @@ if st.session_state.get("page", "chat") == "home":
     if st.button("💬 Go to Chat", key="home_go_chat"):
         st.session_state["page"] = "chat"
         st.rerun()
+    
+    # Show welcome overlay on top of home page
+    if st.session_state.get("show_welcome_overlay", False):
+        show_welcome_screen()
+    
     st.stop()
 
 # Render chat history

@@ -135,8 +135,33 @@ def render_emotions():
             # Most common intent (user-friendly display)
             intent_counts = Counter([e["intent"] for e in session_emotions])
             most_common = intent_counts.most_common(1)[0] if intent_counts else ("none", 0)
-            display_emotion = most_common[0].replace('_', ' ').title()
-            st.metric("Most Common Emotion", display_emotion, f"{most_common[1]} times")
+            emotion_key = most_common[0]
+            display_emotion = emotion_key.replace('_', ' ').title()
+            
+            # Map emotion to intensity level and assign color
+            EMOTION_INTENSITY = {
+                "panic": 9, "crisis": 10, "self_harm": 10, "overwhelmed": 8, "test_anxiety": 7,
+                "social_anxiety": 7, "grief": 8, "anger": 7, "fear": 7,
+                "stress": 6, "sadness": 6, "loneliness": 6, "frustration": 5,
+                "worry": 5, "nervous": 5, "uncertain": 4, "confused": 4,
+                "tired": 4, "bored": 3, "calm": 2, "hopeful": 1, "happy": 1,
+                "content": 1, "casual": 2, "other": 2,
+            }
+            
+            intensity = EMOTION_INTENSITY.get(emotion_key, 3)
+            
+            # Assign color based on intensity
+            if intensity <= 3:
+                bg_color = "#d4f1d4"  # green (calm)
+                text_color = "#2d5f4a"
+            elif intensity <= 6:
+                bg_color = "#fff9e6"  # yellow (moderate)
+                text_color = "#8b6914"
+            else:
+                bg_color = "#ffe6f0"  # pink (high intensity)
+                text_color = "#d63384"
+            
+            st.markdown(f"<p style='font-size: 0.875rem; color: #666; margin-bottom: 0.25rem;'>Most Common Emotion</p><p style='background-color: {bg_color}; color: {text_color}; padding: 4px 8px; border-radius: 4px; font-size: 0.9rem; font-weight: 600; margin-top: 0; margin-bottom: 0.25rem; display: inline-block;'>{display_emotion}</p><p style='font-size: 0.75rem; color: #888; margin-top: 0.25rem;'>{most_common[1]} times</p>", unsafe_allow_html=True)
         
         with col2:
             # Average risk level (simplified)

@@ -3,6 +3,8 @@ import json
 from pathlib import Path
 from datetime import datetime, timezone, timedelta
 import plotly.graph_objects as go
+from openai import OpenAI
+import os
 
 def render_timeline():
     """Render the emotional timeline page"""
@@ -155,6 +157,80 @@ def render_timeline():
                     '<div style="background-color: #ffe6f0; color: #d63384; padding: 12px; border-radius: 8px; border-left: 4px solid #ff69b4;">➜ your emotional state has been relatively stable</div>',
                     unsafe_allow_html=True
                 )
+        
+        # Add "Gain Insights" button
+        st.write("")
+        if st.button("✧ gain insights", key="gain_insights"):
+            # Show loading indicator
+            with st.spinner("Analyzing your emotional journey..."):
+                # Prepare data for AI analysis
+                avg_intent = sum(intent_values) / len(intent_values) if intent_values else 0
+                high_intensity = sum(1 for v in intent_values if v >= 7)
+                calm_moments = sum(1 for v in intent_values if v <= 3)
+                total_moments = len(intent_values)
+                
+                # Calculate trend
+                if len(intent_values) >= 3:
+                    recent_avg = sum(intent_values[-3:]) / 3
+                    earlier_avg = sum(intent_values[:-3]) / len(intent_values[:-3]) if len(intent_values) > 3 else recent_avg
+                    trend_diff = recent_avg - earlier_avg
+                else:
+                    trend_diff = 0
+                
+                # Get emotion labels for context
+                emotion_list = [f"{intent_labels[i]} (intensity: {intent_values[i]})" for i in range(len(intent_labels))]
+                
+                # Create prompt for AI
+                prompt = f"""You are a compassionate teen mental health coach analyzing a user's emotional timeline data.
+
+Emotional Journey Data:
+- Total interactions: {total_moments}
+- Average emotional intensity: {avg_intent:.1f}/10
+- High intensity moments (7-10): {high_intensity}
+- Calm moments (1-3): {calm_moments}
+- Trend: {"improving" if trend_diff < -1 else "increasing" if trend_diff > 1 else "stable"}
+- Emotions experienced: {', '.join(emotion_list[:5])}{"..." if len(emotion_list) > 5 else ""}
+
+Provide a warm, supportive 1-2 sentence insight about their emotional journey. Be encouraging, acknowledge patterns, and if there are concerns, gently suggest coping strategies or support. Keep it natural and teen-friendly."""
+
+                # Call OpenAI API
+                try:
+                    client = OpenAI(api_key=os.getenv("OPENAI_API_KEY"))
+                    response = client.chat.completions.create(
+                        model="gpt-4o-mini",
+                        messages=[
+                            {"role": "system", "content": "You are Juno, a compassionate AI mental health companion for teens. Provide brief, warm, supportive insights."},
+                            {"role": "user", "content": prompt}
+                        ],
+                        temperature=0.7,
+                        max_tokens=150
+                    )
+                    
+                    insight_text = response.choices[0].message.content.strip()
+                    
+                    # Display AI-generated insight
+                    st.markdown(
+                        f'<div style="background-color: #e8f4f8; color: #0c5460; padding: 16px; border-radius: 8px; border-left: 4px solid #A8D5BA; margin-top: 10px;">'
+                        f'<strong>✧ personalized insight:</strong><br>{insight_text}'
+                        f'</div>',
+                        unsafe_allow_html=True
+                    )
+                except Exception as e:
+                    st.error(f"Unable to generate insights at this time. Please try again later.")
+                    # Fallback to rule-based insight
+                    if avg_intent <= 3:
+                        state_desc = "relatively calm"
+                    elif avg_intent <= 6:
+                        state_desc = "experiencing moderate stress"
+                    else:
+                        state_desc = "going through high emotional intensity"
+                    
+                    st.markdown(
+                        f'<div style="background-color: #e8f4f8; color: #0c5460; padding: 16px; border-radius: 8px; border-left: 4px solid #A8D5BA; margin-top: 10px;">'
+                        f'<strong>📊 session summary:</strong> Based on {total_moments} interactions, you\'ve been {state_desc}, with {high_intensity} high-intensity moment(s) and {calm_moments} calm moment(s).'
+                        f'</div>',
+                        unsafe_allow_html=True
+                    )
     
     st.write("")
     st.write("")
