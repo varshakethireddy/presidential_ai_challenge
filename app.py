@@ -167,10 +167,14 @@ st.markdown(
     unsafe_allow_html=True,
 )
 
-# Welcome screen state - check if it should be shown
+# Welcome screen state - check if it should be shown (only on first load)
 if "welcome_shown" not in st.session_state:
     st.session_state["welcome_shown"] = False
     st.session_state["show_welcome_overlay"] = True
+else:
+    # If user navigates back to home, don't show welcome again
+    if "show_welcome_overlay" not in st.session_state:
+        st.session_state["show_welcome_overlay"] = False
 
 # Ensure page default is set before rendering header controls
 if "page" not in st.session_state:
@@ -393,6 +397,7 @@ if st.session_state.get("page", "chat") == "home":
         """
     )
     st.write("Helpful links and project info can go here.")
+    
     if st.button("💬 chat now", key="home_go_chat"):
         st.session_state["page"] = "chat"
         st.rerun()
@@ -454,7 +459,7 @@ def _render_message_with_avatar(msg: dict):
         bubble_class = 'assistant' if role == 'assistant' else 'user'
         st.markdown(f'<div class="chat-bubble {bubble_class}">{safe}</div>', unsafe_allow_html=True)
 
-def call_model(user_message: str, rag_context: str) -> str:
+def call_model(user_message: str, rag_context: str, conversation_history: list = None) -> str:
     api_key = os.getenv("OPENAI_API_KEY")
     if not api_key:
         # Allow running without API key for UI testing
@@ -471,8 +476,8 @@ def call_model(user_message: str, rag_context: str) -> str:
 
     client = OpenAI(api_key=api_key)
 
-    # Use Chat Completions API with JSON mode to get logprobs
-    # This gives us REAL confidence scores from the model's internal probabilities
+    # Use Chat Completions API with JSON mode
+    # Model provides explicit confidence scores in the JSON response
     
     # Build the prompt with schema categories
     schema_to_send = None
@@ -485,7 +490,7 @@ def call_model(user_message: str, rag_context: str) -> str:
     intent_options = schema_to_send["properties"]["intent"]["enum"]
     tone_options = schema_to_send["properties"]["tone"]["enum"]
     
-    # Create a prompt that includes the schema structure
+    # Create a prompt that includes the schema structure with explicit confidence scores
     schema_prompt = f"""You must respond with valid JSON matching this schema:
 {{
   "intent": one of {intent_options},
@@ -497,72 +502,58 @@ def call_model(user_message: str, rag_context: str) -> str:
   "assistant_message": string
 }}
 
-Analyze the user's emotional state carefully and provide confidence scores based on clarity of emotional expression."""
+CRITICAL - Confidence Scoring:
+Provide REALISTIC confidence scores (0.0-1.0) based on classification certainty. DO NOT default to 0.9 or 1.0.
+
+Guidelines:
+- Simple greetings ("hi", "hey", "thanks"): 0.95-0.99 (extremely obvious)
+- Clear emotional statements ("I'm so stressed", "I feel happy"): 0.85-0.95
+- Contextual clues ("my test is tomorrow and I can't focus"): 0.70-0.85
+- Subtle indicators ("things are okay I guess"): 0.50-0.70
+- Ambiguous messages: 0.30-0.50
+- Very unclear: below 0.30
+
+Use the FULL range. Don't cluster around 0.9 or round to 1.0 unless truly 100% certain.
+Confidence scores should reflect the model's true certainty about the classifications.
+Confidence scores should be different for both primary emotion and emotional tone based on the input. 
+"""
+
+    # Build messages with conversation history
+    messages = [
+        {"role": "system", "content": SYSTEM_PROMPT + "\n\n" + schema_prompt},
+        {"role": "system", "content": "Coping skill cards (use only these):\n\n" + rag_context},
+    ]
+    
+    # Add conversation history if provided
+    if conversation_history:
+        for msg in conversation_history[:-1]:  # Exclude the current message we're about to add
+            if msg.get("role") in ["user", "assistant"]:
+                messages.append({
+                    "role": msg["role"],
+                    "content": msg["content"]
+                })
+    
+    # Add current user message
+    messages.append({"role": "user", "content": user_message})
 
     response = client.chat.completions.create(
         model="gpt-4o-mini",
-        messages=[
-            {"role": "system", "content": SYSTEM_PROMPT + "\n\n" + schema_prompt},
-            {"role": "system", "content": "Coping skill cards (use only these):\n\n" + rag_context},
-            {"role": "user", "content": user_message},
-        ],
-        response_format={"type": "json_object"},
-        logprobs=True,
-        top_logprobs=20  # Get top 20 tokens to see competing emotions
+        messages=messages,
+        response_format={"type": "json_object"}
     )
 
-    # Parse the response and extract logprobs for confidence
+    # Parse the response - model provides confidence scores
     parsed = None
     try:
         content = response.choices[0].message.content
         result = json.loads(content)
         
-        # Extract REAL confidence from logprobs by finding specific emotion tokens
-        if response.choices[0].logprobs and response.choices[0].logprobs.content:
-            import math
-            
-            logprobs_content = response.choices[0].logprobs.content
-            
-            # Get the emotion values from the parsed result
-            intent_value = result.get("intent", "")
-            tone_value = result.get("tone", "")
-            
-            intent_confidence = None
-            tone_confidence = None
-            
-            # Search through tokens to find where intent and tone values appear
-            for token_data in logprobs_content:
-                token_text = token_data.token.lower().strip().strip('"').strip(',')
-                
-                # Check if this token matches our intent value
-                if intent_value and token_text == intent_value.lower().replace('_', ''):
-                    if token_data.logprob is not None and intent_confidence is None:
-                        intent_confidence = math.exp(token_data.logprob)
-                
-                # Also check with underscore in case token preserves it
-                if intent_value and token_text == intent_value.lower():
-                    if token_data.logprob is not None and intent_confidence is None:
-                        intent_confidence = math.exp(token_data.logprob)
-                
-                # Check if this token matches our tone value
-                if tone_value and token_text == tone_value.lower().replace('_', ''):
-                    if token_data.logprob is not None and tone_confidence is None:
-                        tone_confidence = math.exp(token_data.logprob)
-                
-                # Also check with underscore
-                if tone_value and token_text == tone_value.lower():
-                    if token_data.logprob is not None and tone_confidence is None:
-                        tone_confidence = math.exp(token_data.logprob)
-                
-                # Stop once we've found both
-                if intent_confidence is not None and tone_confidence is not None:
-                    break
-            
-            # Apply the specific confidence scores
-            if intent_confidence is not None:
-                result["intent_confidence"] = round(intent_confidence, 3)
-            if tone_confidence is not None:
-                result["tone_confidence"] = round(tone_confidence, 3)
+        # Use model's confidence scores (already in result)
+        # Set defaults if missing
+        if "intent_confidence" not in result:
+            result["intent_confidence"] = 0.5
+        if "tone_confidence" not in result:
+            result["tone_confidence"] = 0.5
                 
     except Exception as e:
         # Fallback if parsing fails
@@ -687,7 +678,7 @@ if st.session_state.get("page") == "chat":
         )
         
         # Call model to get structured response with proper intent classification
-        result = call_model(user_text, combined_context)
+        result = call_model(user_text, combined_context, st.session_state["messages"])
         
         # Clear typing indicator
         typing_placeholder.empty()
