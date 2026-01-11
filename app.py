@@ -402,13 +402,28 @@ if st.session_state.get("page", "chat") == "home":
         st.session_state["page"] = "chat"
         st.rerun()
     
-    # Circular emotions icon button (24px) - using Streamlit button with image replacement
+    # Add some spacing
+    st.write("")
+    st.write("")
+    st.write("")
+    
+    # Circular emotions icon button
     try:
         with open('data/avatars/juno_emotions.png', 'rb') as f:
             emotions_icon_data = base64.b64encode(f.read()).decode()
         
-        # Create button with placeholder text that will be replaced
-        if st.button("🎭", key="home_emotions_btn"):
+        # CSS to hide the button initially until JavaScript replaces it
+        st.markdown("""
+            <style>
+            button[data-testid="baseButton-secondary"]:has(div:contains(".")) {
+                opacity: 0 !important;
+                transition: opacity 0.1s ease-in;
+            }
+            </style>
+        """, unsafe_allow_html=True)
+        
+        # Create button with unique placeholder text that will be replaced
+        if st.button(".", key="home_emotions_btn"):
             st.session_state["page"] = "emotions"
             st.rerun()
         
@@ -420,26 +435,30 @@ if st.session_state.get("page", "chat") == "home":
                     const buttons = window.parent.document.querySelectorAll('button');
                     let found = false;
                     buttons.forEach(btn => {{
-                        if (btn.innerText.includes('🎭')) {{
-                            btn.innerHTML = '<img src="data:image/png;base64,{emotions_icon_data}" style="width:80px;height:80px;border-radius:50%;object-fit:cover;display:block;margin:0 auto;padding:0;" />';
-                            btn.style.width = '88px';
-                            btn.style.height = '88px';
-                            btn.style.minHeight = '88px';
-                            btn.style.minWidth = '88px';
+                        if (btn.innerText.trim() === '.') {{
+                            btn.innerHTML = '<img src="data:image/png;base64,{emotions_icon_data}" style="width:120px;height:120px;border-radius:50%;object-fit:cover;display:block;margin:0 auto;padding:0;" />';
+                            btn.style.width = '128px';
+                            btn.style.height = '128px';
+                            btn.style.minHeight = '128px';
+                            btn.style.minWidth = '128px';
                             btn.style.padding = '4px';
                             btn.style.borderRadius = '50%';
                             btn.style.border = 'none';
                             btn.style.display = 'flex';
                             btn.style.alignItems = 'center';
                             btn.style.justifyContent = 'center';
+                            btn.style.opacity = '1';
+                            btn.style.transition = 'opacity 0.2s ease-in';
                             found = true;
                         }}
                     }});
                     if (!found) {{
-                        setTimeout(replaceButtonWithImage, 100);
+                        setTimeout(replaceButtonWithImage, 10);
                     }}
                 }}
-                setTimeout(replaceButtonWithImage, 100);
+                replaceButtonWithImage();
+                setTimeout(replaceButtonWithImage, 5);
+                setTimeout(replaceButtonWithImage, 10);
             </script>
             """,
             height=0,
