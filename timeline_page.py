@@ -186,28 +186,111 @@ def render_timeline():
         
         # Add "Gain Insights" button
         st.write("")
+        st.markdown("<p style='background-color: #ffe6f0; color: #d63384; padding: 8px 12px; border-radius: 6px; font-size: 0.9rem; margin-bottom: 8px;'>learn more about your journey</p>", unsafe_allow_html=True)
         if st.button("✧ gain insights", key="gain_insights"):
-            # Show loading indicator
-            with st.spinner("Analyzing your emotional journey..."):
-                # Prepare data for AI analysis
-                avg_intent = sum(intent_values) / len(intent_values) if intent_values else 0
-                high_intensity = sum(1 for v in intent_values if v >= 7)
-                calm_moments = sum(1 for v in intent_values if v <= 3)
-                total_moments = len(intent_values)
-                
-                # Calculate trend
-                if len(intent_values) >= 3:
-                    recent_avg = sum(intent_values[-3:]) / 3
-                    earlier_avg = sum(intent_values[:-3]) / len(intent_values[:-3]) if len(intent_values) > 3 else recent_avg
-                    trend_diff = recent_avg - earlier_avg
-                else:
-                    trend_diff = 0
-                
-                # Get emotion labels for context
-                emotion_list = [f"{intent_labels[i]} (intensity: {intent_values[i]})" for i in range(len(intent_labels))]
-                
-                # Create prompt for AI
-                prompt = f"""You are a compassionate teen mental health coach analyzing a user's emotional timeline data.
+            # Show loading indicator with animated sparkles
+            loading_placeholder = st.empty()
+            with loading_placeholder:
+                st.markdown("""
+                    <div style="text-align: center; padding: 20px;">
+                        <div class="sparks-container">
+                            <svg class="spark spark-1" viewBox="0 0 24 24">
+                                <path d="M12 0 L14 10 L24 12 L14 14 L12 24 L10 14 L0 12 L10 10 Z" fill="#ff69b4"/>
+                            </svg>
+                            <svg class="spark spark-2" viewBox="0 0 24 24">
+                                <path d="M12 0 L14 10 L24 12 L14 14 L12 24 L10 14 L0 12 L10 10 Z" fill="#ff85c1"/>
+                            </svg>
+                            <svg class="spark spark-3" viewBox="0 0 24 24">
+                                <path d="M12 0 L14 10 L24 12 L14 14 L12 24 L10 14 L0 12 L10 10 Z" fill="#ff69b4"/>
+                            </svg>
+                            <svg class="spark spark-4" viewBox="0 0 24 24">
+                                <path d="M12 0 L14 10 L24 12 L14 14 L12 24 L10 14 L0 12 L10 10 Z" fill="#ff85c1"/>
+                            </svg>
+                            <svg class="spark spark-5" viewBox="0 0 24 24">
+                                <path d="M12 0 L14 10 L24 12 L14 14 L12 24 L10 14 L0 12 L10 10 Z" fill="#ff69b4"/>
+                            </svg>
+                            <svg class="spark spark-6" viewBox="0 0 24 24">
+                                <path d="M12 0 L14 10 L24 12 L14 14 L12 24 L10 14 L0 12 L10 10 Z" fill="#ff85c1"/>
+                            </svg>
+                        </div>
+                        <p style="color: #6b8e7f; margin-top: 10px; font-size: 1rem;">Analyzing your emotional journey...</p>
+                    </div>
+                    <style>
+                    .sparks-container {
+                        position: relative;
+                        width: 100px;
+                        height: 100px;
+                        margin: 0 auto;
+                    }
+                    .spark {
+                        position: absolute;
+                        width: 20px;
+                        height: 20px;
+                        animation: twinkle 1.5s ease-in-out infinite;
+                        filter: drop-shadow(0 0 6px rgba(255, 105, 180, 0.9));
+                    }
+                    .spark-1 {
+                        top: 5%;
+                        left: 45%;
+                        animation-delay: 0s;
+                    }
+                    .spark-2 {
+                        top: 25%;
+                        left: 75%;
+                        animation-delay: 0.25s;
+                    }
+                    .spark-3 {
+                        top: 55%;
+                        left: 80%;
+                        animation-delay: 0.5s;
+                    }
+                    .spark-4 {
+                        top: 75%;
+                        left: 45%;
+                        animation-delay: 0.75s;
+                    }
+                    .spark-5 {
+                        top: 55%;
+                        left: 5%;
+                        animation-delay: 1s;
+                    }
+                    .spark-6 {
+                        top: 25%;
+                        left: 0%;
+                        animation-delay: 1.25s;
+                    }
+                    @keyframes twinkle {
+                        0%, 100% {
+                            opacity: 0.2;
+                            transform: scale(0.5) rotate(0deg);
+                        }
+                        50% {
+                            opacity: 1;
+                            transform: scale(1.2) rotate(180deg);
+                        }
+                    }
+                    </style>
+                """, unsafe_allow_html=True)
+            
+            # Prepare data for AI analysis
+            avg_intent = sum(intent_values) / len(intent_values) if intent_values else 0
+            high_intensity = sum(1 for v in intent_values if v >= 7)
+            calm_moments = sum(1 for v in intent_values if v <= 3)
+            total_moments = len(intent_values)
+            
+            # Calculate trend
+            if len(intent_values) >= 3:
+                recent_avg = sum(intent_values[-3:]) / 3
+                earlier_avg = sum(intent_values[:-3]) / len(intent_values[:-3]) if len(intent_values) > 3 else recent_avg
+                trend_diff = recent_avg - earlier_avg
+            else:
+                trend_diff = 0
+            
+            # Get emotion labels for context
+            emotion_list = [f"{intent_labels[i]} (intensity: {intent_values[i]})" for i in range(len(intent_labels))]
+            
+            # Create prompt for AI
+            prompt = f"""You are a compassionate teen mental health coach analyzing a user's emotional timeline data.
 
 Emotional Journey Data:
 - Total interactions: {total_moments}
@@ -219,44 +302,46 @@ Emotional Journey Data:
 
 Provide a warm, supportive 1-2 sentence insight about their emotional journey. Be encouraging, acknowledge patterns, and if there are concerns, gently suggest coping strategies or support. Keep it natural and teen-friendly."""
 
-                # Call OpenAI API
-                try:
-                    client = OpenAI(api_key=os.getenv("OPENAI_API_KEY"))
-                    response = client.chat.completions.create(
-                        model="gpt-4o-mini",
-                        messages=[
-                            {"role": "system", "content": "You are Juno, a compassionate AI mental health companion for teens. Provide brief, warm, supportive insights."},
-                            {"role": "user", "content": prompt}
-                        ],
-                        temperature=0.7,
-                        max_tokens=150
-                    )
-                    
-                    insight_text = response.choices[0].message.content.strip()
-                    
-                    # Display AI-generated insight
-                    st.markdown(
-                        f'<div style="background-color: #e8f4f8; color: #0c5460; padding: 16px; border-radius: 8px; border-left: 4px solid #A8D5BA; margin-top: 10px;">'
-                        f'<strong>✧ personalized insight:</strong><br>{insight_text}'
-                        f'</div>',
-                        unsafe_allow_html=True
-                    )
-                except Exception as e:
-                    st.error(f"Unable to generate insights at this time. Please try again later.")
-                    # Fallback to rule-based insight
-                    if avg_intent <= 3:
-                        state_desc = "relatively calm"
-                    elif avg_intent <= 6:
-                        state_desc = "experiencing moderate stress"
-                    else:
-                        state_desc = "going through high emotional intensity"
-                    
-                    st.markdown(
-                        f'<div style="background-color: #e8f4f8; color: #0c5460; padding: 16px; border-radius: 8px; border-left: 4px solid #A8D5BA; margin-top: 10px;">'
-                        f'<strong>📊 session summary:</strong> Based on {total_moments} interactions, you\'ve been {state_desc}, with {high_intensity} high-intensity moment(s) and {calm_moments} calm moment(s).'
-                        f'</div>',
-                        unsafe_allow_html=True
-                    )
+            # Call OpenAI API
+            try:
+                client = OpenAI(api_key=os.getenv("OPENAI_API_KEY"))
+                response = client.chat.completions.create(
+                    model="gpt-4o-mini",
+                    messages=[
+                        {"role": "system", "content": "You are Juno, a compassionate AI mental health companion for teens. Provide brief, warm, supportive insights."},
+                        {"role": "user", "content": prompt}
+                    ],
+                    temperature=0.7,
+                    max_tokens=150
+                )
+                
+                insight_text = response.choices[0].message.content.strip()
+                
+                # Clear loading animation and display AI-generated insight
+                loading_placeholder.empty()
+                st.markdown(
+                    f'<div style="background-color: #e8f4f8; color: #0c5460; padding: 16px; border-radius: 8px; border-left: 4px solid #A8D5BA; margin-top: 10px;">'
+                    f'<strong>✧ personalized insight:</strong><br>{insight_text}'
+                    f'</div>',
+                    unsafe_allow_html=True
+                )
+            except Exception as e:
+                loading_placeholder.empty()
+                st.error(f"Unable to generate insights at this time. Please try again later.")
+                # Fallback to rule-based insight
+                if avg_intent <= 3:
+                    state_desc = "relatively calm"
+                elif avg_intent <= 6:
+                    state_desc = "experiencing moderate stress"
+                else:
+                    state_desc = "going through high emotional intensity"
+                
+                st.markdown(
+                    f'<div style="background-color: #e8f4f8; color: #0c5460; padding: 16px; border-radius: 8px; border-left: 4px solid #A8D5BA; margin-top: 10px;">'
+                    f'<strong>📊 session summary:</strong> Based on {total_moments} interactions, you\'ve been {state_desc}, with {high_intensity} high-intensity moment(s) and {calm_moments} calm moment(s).'
+                    f'</div>',
+                    unsafe_allow_html=True
+                )
     
     st.write("")
     st.write("")

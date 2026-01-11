@@ -183,13 +183,56 @@ def search_documents(query: str, intent: str = None, k: int = 3) -> List[Dict[st
 
 def retrieve_cards(cards: List[Dict[str, Any]], intent: str, k: int = 2) -> List[Dict[str, Any]]:
     """Retrieve skill cards by intent (original function for backwards compatibility)"""
+    if not intent:
+        # Return diverse cards from different categories if no intent specified
+        return cards[:k]
     matches = [c for c in cards if intent in c.get("tags", [])]
     return matches[:k] if matches else cards[:k]
 
 def retrieve_combined_context(cards: List[Dict[str, Any]], user_message: str, intent: str, k_cards: int = 2, k_docs: int = 2) -> Dict[str, Any]:
     """Retrieve both skill cards and relevant documents"""
-    # Get skill cards
-    skill_cards = retrieve_cards(cards, intent, k=k_cards)
+    # Get skill cards - if no intent, do keyword matching on user message
+    if not intent:
+        # Simple keyword matching to get relevant cards
+        user_lower = user_message.lower()
+        keywords = {
+            "anxious": ["anxiety", "panic", "overwhelm", "worry"],
+            "stressed": ["stress", "overwhelm"],
+            "sad": ["sadness", "grief", "loneliness"],
+            "angry": ["anger", "frustration"],
+            "sleep": ["sleep", "tired"],
+            "test": ["test_anxiety", "anxiety"],
+            "social": ["social_anxiety", "anxiety"],
+            "focus": ["focus", "distraction"]
+        }
+        
+        # Find matching tags
+        matched_tags = set()
+        for word, tags in keywords.items():
+            if word in user_lower:
+                matched_tags.update(tags)
+        
+        # Get cards matching any of the tags
+        if matched_tags:
+            skill_cards = []
+            for card in cards:
+                card_tags = card.get("tags", [])
+                if any(tag in card_tags for tag in matched_tags):
+                    skill_cards.append(card)
+                    if len(skill_cards) >= k_cards:
+                        break
+            # If we didn't get enough, add more diverse cards
+            if len(skill_cards) < k_cards:
+                for card in cards:
+                    if card not in skill_cards:
+                        skill_cards.append(card)
+                        if len(skill_cards) >= k_cards:
+                            break
+        else:
+            # No keywords matched, return diverse cards
+            skill_cards = cards[:k_cards]
+    else:
+        skill_cards = retrieve_cards(cards, intent, k=k_cards)
     
     # Get relevant documents
     relevant_docs = search_documents(user_message, intent=intent, k=k_docs)
