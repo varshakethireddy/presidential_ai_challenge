@@ -402,6 +402,52 @@ if st.session_state.get("page", "chat") == "home":
         st.session_state["page"] = "chat"
         st.rerun()
     
+    # Circular emotions icon button (24px) - using Streamlit button with image replacement
+    try:
+        with open('data/avatars/juno_emotions.png', 'rb') as f:
+            emotions_icon_data = base64.b64encode(f.read()).decode()
+        
+        # Create button with placeholder text that will be replaced
+        if st.button("🎭", key="home_emotions_btn"):
+            st.session_state["page"] = "emotions"
+            st.rerun()
+        
+        # JavaScript to replace button content with image (with retry mechanism)
+        st.components.v1.html(
+            f"""
+            <script>
+                function replaceButtonWithImage() {{
+                    const buttons = window.parent.document.querySelectorAll('button');
+                    let found = false;
+                    buttons.forEach(btn => {{
+                        if (btn.innerText.includes('🎭')) {{
+                            btn.innerHTML = '<img src="data:image/png;base64,{emotions_icon_data}" style="width:80px;height:80px;border-radius:50%;object-fit:cover;display:block;margin:0 auto;padding:0;" />';
+                            btn.style.width = '88px';
+                            btn.style.height = '88px';
+                            btn.style.minHeight = '88px';
+                            btn.style.minWidth = '88px';
+                            btn.style.padding = '4px';
+                            btn.style.borderRadius = '50%';
+                            btn.style.border = 'none';
+                            btn.style.display = 'flex';
+                            btn.style.alignItems = 'center';
+                            btn.style.justifyContent = 'center';
+                            found = true;
+                        }}
+                    }});
+                    if (!found) {{
+                        setTimeout(replaceButtonWithImage, 100);
+                    }}
+                }}
+                setTimeout(replaceButtonWithImage, 100);
+            </script>
+            """,
+            height=0,
+            width=0
+        )
+    except Exception:
+        pass  # Silently fail if image not found
+    
     # Show welcome overlay on top of home page
     if st.session_state.get("show_welcome_overlay", False):
         show_welcome_screen()
