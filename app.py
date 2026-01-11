@@ -123,12 +123,12 @@ st.markdown(
     [data-testid="stChatInput"] {
         border-radius: 24px !important;
         border: 5px solid #8fc5a3 !important;
-        box-shadow: 0 0 0 8px white, 0 0 30px rgba(143, 197, 163, 1), 0 0 50px rgba(143, 197, 163, 0.6) !important;
+        box-shadow: 0 0 0 1px white, 0 0 30px rgba(143, 197, 163, 1), 0 0 50px rgba(143, 197, 163, 0.6) !important;
         background-color: white !important;
     }
     [data-testid="stChatInput"]:focus-within {
         border: 5px solid #8fc5a3 !important;
-        box-shadow: 0 0 0 8px white, 0 0 30px rgba(143, 197, 163, 1), 0 0 50px rgba(143, 197, 163, 0.6) !important;
+        box-shadow: 0 0 0 1px white, 0 0 30px rgba(143, 197, 163, 1), 0 0 50px rgba(143, 197, 163, 0.6) !important;
     }
     [data-testid="stChatInput"] textarea {
         border: none !important;
@@ -142,12 +142,12 @@ st.markdown(
     .stChatInputContainer {
         border-radius: 24px !important;
         border: 5px solid #8fc5a3 !important;
-        box-shadow: 0 0 0 8px white, 0 0 30px rgba(143, 197, 163, 1), 0 0 50px rgba(143, 197, 163, 0.6) !important;
+        box-shadow: 0 0 0 1px white, 0 0 30px rgba(143, 197, 163, 1), 0 0 50px rgba(143, 197, 163, 0.6) !important;
         background-color: white !important;
     }
     .stChatInputContainer:focus-within {
         border: 5px solid #8fc5a3 !important;
-        box-shadow: 0 0 0 8px white, 0 0 30px rgba(143, 197, 163, 1), 0 0 50px rgba(143, 197, 163, 0.6) !important;
+        box-shadow: 0 0 0 1px white, 0 0 30px rgba(143, 197, 163, 1), 0 0 50px rgba(143, 197, 163, 0.6) !important;
     }
     .stChatInputContainer textarea:focus {
         outline: none !important;
@@ -211,7 +211,7 @@ if st.session_state.get("page") == "chat":
         pass
 
     st.title("💬 Juno AI")
-    st.caption("A teen-focused coping-skills coach (not a therapist).")
+    st.caption("A teen-focused coping-skills coach, not a therapist")
 
 if "session_id" not in st.session_state:
     st.session_state["session_id"] = str(uuid.uuid4())
@@ -501,6 +501,8 @@ def _render_message_with_avatar(msg: dict):
             return ""
 
     # Always place avatar on the left, message on the right (1:9 columns)
+    # Add wrapper with negative margin to reduce spacing
+    st.markdown('<div style="margin-top: -1.5rem; margin-bottom: -1rem;">', unsafe_allow_html=True)
     col_avatar, col_msg = st.columns([1, 9])
     with col_avatar:
         if role == "assistant":
@@ -529,6 +531,7 @@ def _render_message_with_avatar(msg: dict):
         safe = safe.replace('\n', '<br/>')
         bubble_class = 'assistant' if role == 'assistant' else 'user'
         st.markdown(f'<div class="chat-bubble {bubble_class}">{safe}</div>', unsafe_allow_html=True)
+    st.markdown('</div>', unsafe_allow_html=True)
 
 def call_model(user_message: str, rag_context: str, conversation_history: list = None) -> str:
     api_key = os.getenv("OPENAI_API_KEY")
@@ -642,13 +645,8 @@ Confidence scores should be different for both primary emotion and emotional ton
 
 # Only render chat interface when on chat page
 if st.session_state.get("page") == "chat":
-    previous_role = None
     for msg in st.session_state["messages"]:
-        # Add a subtle divider when the speaker changes (helps separate turns on small screens)
-        if previous_role and previous_role != msg.get("role"):
-            st.markdown("<hr style='border:none;border-top:1px solid #eee;margin:8px 0;'/>", unsafe_allow_html=True)
         _render_message_with_avatar(msg)
-        previous_role = msg.get("role")
 
     st.markdown("<br><br>", unsafe_allow_html=True)
     user_text = st.chat_input("you can start anywhere...")
@@ -656,11 +654,6 @@ if st.session_state.get("page") == "chat":
     if user_text:
         # Add user message to session and render with custom avatar (avoid Streamlit default avatar)
         st.session_state["messages"].append({"role": "user", "content": user_text})
-        # If the previous message was from a different role, show a divider first
-        if len(st.session_state["messages"]) >= 2:
-            prev = st.session_state["messages"][-2]
-            if prev.get("role") != "user":
-                st.markdown("<hr style='border:none;border-top:1px solid #eee;margin:8px 0;'/>", unsafe_allow_html=True)
         _render_message_with_avatar({"role": "user", "content": user_text})
 
         # Safety first
@@ -734,11 +727,12 @@ if st.session_state.get("page") == "chat":
         
         # Retrieve both skill cards AND relevant documents from Google Drive
         # The AI will use both sources to provide comprehensive support
+        # Use broader retrieval initially since we don't know intent yet
         context_data = retrieve_combined_context(
             cards=cards,
             user_message=user_text,
-            intent="stress",  # Initial intent, will be refined by model
-            k_cards=2,
+            intent="",  # Empty intent to get cards based on message content
+            k_cards=4,  # Get more cards for better variety
             k_docs=2
         )
         
