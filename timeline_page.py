@@ -5,6 +5,15 @@ from datetime import datetime, timezone, timedelta
 import plotly.graph_objects as go
 from openai import OpenAI
 import os
+from PIL import Image
+import base64
+from io import BytesIO
+
+def image_to_base64(img):
+    """Convert PIL Image to base64 string"""
+    buffered = BytesIO()
+    img.save(buffered, format="PNG")
+    return base64.b64encode(buffered.getvalue()).decode()
 
 def render_timeline():
     """Render the emotional timeline page"""
@@ -55,6 +64,7 @@ def render_timeline():
             unsafe_allow_html=True
         )
     else:
+        # Continue with the timeline graph
         timestamps = []
         intent_values = []
         tone_values = []
@@ -113,7 +123,23 @@ def render_timeline():
             height=500
         )
         
+        # Create container with graph and overlapping image
+        st.markdown('<div style="position: relative; margin-top: -80px;">', unsafe_allow_html=True)
+        
+        # Add decorative image with absolute positioning
+        try:
+            deco_image = Image.open("data/avatars/timeline_deco.png")
+            st.markdown(
+                f'<div style="position: absolute; top: -160px; right: 0; z-index: 999; width: 450px; pointer-events: none;">'
+                f'<img src="data:image/png;base64,{image_to_base64(deco_image)}" style="width: 100%; height: auto;" />'
+                f'</div>',
+                unsafe_allow_html=True
+            )
+        except Exception:
+            pass
+        
         st.plotly_chart(fig, use_container_width=True)
+        st.markdown('</div>', unsafe_allow_html=True)
         
         st.divider()
         st.subheader("Insights")
