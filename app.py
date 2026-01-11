@@ -341,7 +341,7 @@ if st.session_state.get("page", "chat") == "home":
     )
     # Display title with animated sprout gif overlay
     import base64
-    with open('sprout.gif', 'rb') as f:
+    with open('data/avatars/sprout.gif', 'rb') as f:
         gif_data = base64.b64encode(f.read()).decode()
     
     # Load custom font

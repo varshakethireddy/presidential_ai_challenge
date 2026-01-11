@@ -1,4 +1,4 @@
 *.pyc
 .env
 logs/chat_sessions.jsonl
-data/teenage_research/
+data/*

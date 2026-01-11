@@ -26,5 +26,244 @@
     ],
     "notes": "Helps your body shift out of fight-or-flight.",
     "source": "Common evidence-based breathing practice."
+  },
+  {
+    "id": "4_7_8_breathing",
+    "tags": ["anxiety", "stress", "sleep"],
+    "title": "4-7-8 Breathing",
+    "steps": [
+      "Inhale 4 seconds.",
+      "Hold 7 seconds.",
+      "Exhale 8 seconds.",
+      "Repeat 4 times."
+    ],
+    "notes": "Great for calming anxiety and helping with sleep.",
+    "source": "Dr. Andrew Weil breathing technique."
+  },
+  {
+    "id": "physiological_sigh",
+    "tags": ["anxiety", "stress", "panic"],
+    "title": "Physiological Sigh (Fast Calm)",
+    "steps": [
+      "Inhale through nose.",
+      "Take a second short inhale on top.",
+      "Long slow exhale through mouth.",
+      "Repeat 3 times."
+    ],
+    "notes": "Fastest way to reduce stress in real-time.",
+    "source": "Neuroscience-backed technique (Huberman Lab)."
+  },
+  {
+    "id": "hand_on_heart_breath",
+    "tags": ["anxiety", "stress", "comfort"],
+    "title": "Hand on Heart Breathing",
+    "steps": [
+      "Place one hand on your chest.",
+      "Inhale slowly through your nose.",
+      "Exhale slowly through your mouth.",
+      "Whisper: \"I'm safe right now.\"",
+      "Repeat 5 times."
+    ],
+    "notes": "Combines breathing with self-compassion.",
+    "source": "Self-soothing technique from trauma-informed care."
+  },
+  {
+    "id": "feet_on_floor",
+    "tags": ["grounding", "panic", "dissociation"],
+    "title": "Feet-on-Floor Reset",
+    "steps": [
+      "Place both feet flat on the floor.",
+      "Press down gently like you're rooting into the ground.",
+      "Notice 3 sensations in your feet.",
+      "Take 3 slow breaths.",
+      "Say: \"Right now, I'm here.\""
+    ],
+    "notes": "Quick grounding when feeling disconnected.",
+    "source": "Body-based grounding technique."
+  },
+  {
+    "id": "temperature_shift",
+    "tags": ["panic", "overwhelm", "grounding"],
+    "title": "Cold Water Reset",
+    "steps": [
+      "Splash cold water on your face OR hold ice.",
+      "Hold for 10–20 seconds.",
+      "Exhale slowly.",
+      "Repeat 2–3 times."
+    ],
+    "notes": "Activates the dive reflex to calm your nervous system.",
+    "source": "DBT distress tolerance skill."
+  },
+  {
+    "id": "name_and_date_grounding",
+    "tags": ["grounding", "panic", "dissociation"],
+    "title": "Name + Date Grounding",
+    "steps": [
+      "Say your full name out loud.",
+      "Say today's date.",
+      "Say where you are right now.",
+      "Say: \"This feeling is temporary.\""
+    ],
+    "notes": "Helps orient you to the present moment.",
+    "source": "Grounding technique for dissociation."
+  },
+  {
+    "id": "worry_to_fact_check",
+    "tags": ["anxiety", "worry", "thoughts"],
+    "title": "Worry vs Facts Check",
+    "steps": [
+      "Write 1 sentence: \"My worry is…\"",
+      "Write 1 sentence: \"The facts I know are…\"",
+      "Write 1 sentence: \"A more balanced thought is…\"",
+      "Take one slow breath."
+    ],
+    "notes": "Helps separate anxious thoughts from reality.",
+    "source": "CBT cognitive restructuring technique."
+  },
+  {
+    "id": "name_the_story",
+    "tags": ["anxiety", "thoughts", "worry"],
+    "title": "Name the Story",
+    "steps": [
+      "Name what your brain is doing: \"I'm catastrophizing.\"",
+      "Say: \"This is a thought, not a fact.\"",
+      "Pick 1 tiny next step you can do.",
+      "Do it now."
+    ],
+    "notes": "Disrupts anxious thought spirals.",
+    "source": "Metacognitive awareness technique."
+  },
+  {
+    "id": "30_second_rule",
+    "tags": ["anxiety", "overwhelm", "stress"],
+    "title": "30-Second Reset",
+    "steps": [
+      "Set a timer for 30 seconds.",
+      "Breathe slowly until it ends.",
+      "Unclench your jaw + shoulders.",
+      "Ask: \"What's one small thing I can do next?\""
+    ],
+    "notes": "Quick reset when feeling stuck.",
+    "source": "Micro-break technique."
+  },
+  {
+    "id": "shake_it_out",
+    "tags": ["stress", "anxiety", "body"],
+    "title": "Shake It Out",
+    "steps": [
+      "Shake out your hands for 10 seconds.",
+      "Shake out your arms for 10 seconds.",
+      "Shake your legs for 10 seconds.",
+      "Take 1 deep breath.",
+      "Notice if your body feels 1% lighter."
+    ],
+    "notes": "Releases physical tension quickly.",
+    "source": "Somatic release technique."
+  },
+  {
+    "id": "wall_push",
+    "tags": ["grounding", "stress", "body"],
+    "title": "Wall Push Grounding",
+    "steps": [
+      "Stand facing a wall.",
+      "Place palms flat on the wall.",
+      "Push gently for 15 seconds.",
+      "Slowly release.",
+      "Repeat 3 times."
+    ],
+    "notes": "Grounds you through physical pressure.",
+    "source": "Body-based grounding technique."
+  },
+  {
+    "id": "progressive_muscle_relax",
+    "tags": ["stress", "anxiety", "body"],
+    "title": "Tense + Release",
+    "steps": [
+      "Tense your fists for 5 seconds.",
+      "Release for 10 seconds.",
+      "Tense your shoulders for 5 seconds.",
+      "Release for 10 seconds.",
+      "Repeat once."
+    ],
+    "notes": "Quick version of progressive muscle relaxation.",
+    "source": "Relaxation technique from PMR."
+  },
+  {
+    "id": "comfort_item",
+    "tags": ["comfort", "stress", "sadness"],
+    "title": "Comfort Object",
+    "steps": [
+      "Grab something soft (blanket, hoodie, pillow).",
+      "Wrap it around you.",
+      "Take 5 slow breaths.",
+      "Tell yourself: \"I'm doing my best.\""
+    ],
+    "notes": "Combines physical comfort with self-compassion.",
+    "source": "Self-soothing technique."
+  },
+  {
+    "id": "safe_place_visualization",
+    "tags": ["comfort", "anxiety", "stress"],
+    "title": "Safe Place Visualization",
+    "steps": [
+      "Close your eyes (if safe).",
+      "Picture a place you feel calm.",
+      "Notice 3 details (color, sound, smell).",
+      "Breathe slowly for 30 seconds."
+    ],
+    "notes": "Creates mental distance from stress.",
+    "source": "Visualization technique from EMDR therapy."
+  },
+  {
+    "id": "self_compassion_script",
+    "tags": ["comfort", "sadness", "stress"],
+    "title": "Talk to Yourself Like a Friend",
+    "steps": [
+      "Ask: \"What would I say to my best friend?\"",
+      "Say it to yourself out loud.",
+      "Add: \"I don't have to solve everything today.\"",
+      "Breathe once."
+    ],
+    "notes": "Shifts from self-criticism to self-kindness.",
+    "source": "Self-compassion practice (Kristin Neff)."
+  },
+  {
+    "id": "emotion_labeling",
+    "tags": ["journaling", "emotions", "awareness"],
+    "title": "Name the Feeling",
+    "steps": [
+      "Finish the sentence: \"I feel…\"",
+      "Rate it from 1–10.",
+      "Where do you feel it in your body?",
+      "Say: \"This will pass.\""
+    ],
+    "notes": "Naming emotions reduces their intensity.",
+    "source": "Affect labeling from neuroscience research."
+  },
+  {
+    "id": "brain_dump",
+    "tags": ["journaling", "overwhelm", "worry"],
+    "title": "2-Minute Brain Dump",
+    "steps": [
+      "Set a timer for 2 minutes.",
+      "Write everything in your head.",
+      "Do not judge it.",
+      "Circle the one thing you can control."
+    ],
+    "notes": "Clears mental clutter quickly.",
+    "source": "Expressive writing technique."
+  },
+  {
+    "id": "tiny_plan",
+    "tags": ["overwhelm", "stress", "productivity"],
+    "title": "Tiny Plan (When Overwhelmed)",
+    "steps": [
+      "Pick ONE task you need to do.",
+      "Make it smaller.",
+      "Do it for 5 minutes.",
+      "Then reassess."
+    ],
+    "notes": "Breaks overwhelm into action.",
+    "source": "Task breakdown technique."
   }
 ]
