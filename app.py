@@ -122,10 +122,13 @@ st.markdown(
     /* Chat input styling - thicker inward border with green glow */
     [data-testid="stChatInput"] {
         border-radius: 24px !important;
-        box-shadow: inset 0 0 0 3px #8fc5a3, 0 0 20px rgba(143, 197, 163, 0.8) !important;
+        border: 5px solid #8fc5a3 !important;
+        box-shadow: 0 0 0 8px white, 0 0 30px rgba(143, 197, 163, 1), 0 0 50px rgba(143, 197, 163, 0.6) !important;
+        background-color: white !important;
     }
     [data-testid="stChatInput"]:focus-within {
-        box-shadow: inset 0 0 0 3px #8fc5a3, 0 0 20px rgba(143, 197, 163, 0.8) !important;
+        border: 5px solid #8fc5a3 !important;
+        box-shadow: 0 0 0 8px white, 0 0 30px rgba(143, 197, 163, 1), 0 0 50px rgba(143, 197, 163, 0.6) !important;
     }
     [data-testid="stChatInput"] textarea {
         border: none !important;
@@ -138,10 +141,13 @@ st.markdown(
     /* Additional overrides for chat input focus states */
     .stChatInputContainer {
         border-radius: 24px !important;
-        box-shadow: inset 0 0 0 3px #8fc5a3, 0 0 20px rgba(143, 197, 163, 0.8) !important;
+        border: 5px solid #8fc5a3 !important;
+        box-shadow: 0 0 0 8px white, 0 0 30px rgba(143, 197, 163, 1), 0 0 50px rgba(143, 197, 163, 0.6) !important;
+        background-color: white !important;
     }
     .stChatInputContainer:focus-within {
-        box-shadow: inset 0 0 0 3px #8fc5a3, 0 0 20px rgba(143, 197, 163, 0.8) !important;
+        border: 5px solid #8fc5a3 !important;
+        box-shadow: 0 0 0 8px white, 0 0 30px rgba(143, 197, 163, 1), 0 0 50px rgba(143, 197, 163, 0.6) !important;
     }
     .stChatInputContainer textarea:focus {
         outline: none !important;
