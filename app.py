@@ -40,6 +40,14 @@ if not is_authenticated():
 st.markdown(
     """
     <style>
+    /* Sidebar styling - pale cream color */
+    section[data-testid="stSidebar"] {
+        background-color: #fffdf7 !important;
+    }
+    section[data-testid="stSidebar"] > div {
+        background-color: #fffdf7 !important;
+    }
+    
     /* primary bubble button style - pastel green */
     div.stButton > button:first-child {
         background-color: #A8D5BA;
@@ -251,7 +259,7 @@ if "intent" not in st.session_state:
 # Sidebar controls
 # User info and logout
 st.sidebar.markdown(f"**👤 {st.session_state.get('username', 'User')}**")
-if st.sidebar.button("🚪 Logout", key="logout_btn"):
+if st.sidebar.button("← logout", key="logout_btn"):
     logout()
 
 st.sidebar.markdown("---")
@@ -445,8 +453,9 @@ if st.session_state.get("page", "chat") == "home":
     )
     
     st.markdown(
-        """
-        **Welcome back!** — a friendly place to learn quick coping skills,
+        f"""
+        **Welcome back, {st.session_state.get('username', 'User')}!** 
+         a friendly place to learn quick coping skills,
         find calming exercises, and get directed to help if you're in crisis.
 
         This is a placeholder home page you can edit later.
