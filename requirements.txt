@@ -8,3 +8,6 @@ plotly
 python-docx
 PyPDF2
 scikit-learn
+sqlalchemy
+bcrypt
+pillow
