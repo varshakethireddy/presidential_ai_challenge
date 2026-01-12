@@ -13,6 +13,8 @@ from emotions_page import render_emotions
 from info_page import render_info
 from welcome_screen import show_welcome_screen
 from journal_page import render_journal
+from auth import render_auth_page, is_authenticated, logout
+from db_utils import save_chat_message, load_chat_messages
 import json
 import html
 import base64
@@ -27,6 +29,12 @@ st.set_page_config(
     page_icon="💬", 
     initial_sidebar_state="collapsed"
 )
+
+# Authentication check - must be logged in to use the app
+if not is_authenticated():
+    render_auth_page()
+    st.stop()
+
 # Custom button styling: make buttons look like pastel green rounded "bubbles".
 # Scoped to `.stButton > button:first-child` so it primarily affects the left/top button.
 st.markdown(
@@ -219,14 +227,35 @@ if "session_id" not in st.session_state:
 
 # Initialize session state
 if "messages" not in st.session_state:
-    st.session_state["messages"] = [
-        {"role": "assistant", "content": "Hey — I’m here with you. What’s been going on today?"}
-    ]
+    # Load chat history from database for this user
+    user_id = st.session_state.get("user_id")
+    session_id = st.session_state.get("session_id")
+    
+    db_messages = load_chat_messages(user_id, session_id)
+    
+    if db_messages:
+        # Convert database messages to session state format
+        st.session_state["messages"] = [
+            {"role": msg["role"], "content": msg["content"]} 
+            for msg in db_messages
+        ]
+    else:
+        # New session - start with welcome message
+        st.session_state["messages"] = [
+            {"role": "assistant", "content": "Hey — I'm here with you. What's been going on today?"}
+        ]
 
 if "intent" not in st.session_state:
     st.session_state["intent"] = "stress"  # default fallback
 
 # Sidebar controls
+# User info and logout
+st.sidebar.markdown(f"**👤 {st.session_state.get('username', 'User')}**")
+if st.sidebar.button("🚪 Logout", key="logout_btn"):
+    logout()
+
+st.sidebar.markdown("---")
+
 # Top-of-sidebar: quick Home button
 if st.sidebar.button("home", key="sidebar_home"):
     st.session_state["page"] = "home"
@@ -675,6 +704,15 @@ if st.session_state.get("page") == "chat":
     if user_text:
         # Add user message to session and render with custom avatar (avoid Streamlit default avatar)
         st.session_state["messages"].append({"role": "user", "content": user_text})
+        
+        # Save user message to database
+        save_chat_message(
+            user_id=st.session_state.get("user_id"),
+            session_id=st.session_state.get("session_id"),
+            role="user",
+            content=user_text
+        )
+        
         _render_message_with_avatar({"role": "user", "content": user_text})
 
         # Safety first
@@ -682,6 +720,15 @@ if st.session_state.get("page") == "chat":
         if crisis_check_bool:
             bot = crisis_response()
             st.session_state["messages"].append({"role": "assistant", "content": bot})
+            
+            # Save crisis response to database
+            save_chat_message(
+                user_id=st.session_state.get("user_id"),
+                session_id=st.session_state.get("session_id"),
+                role="assistant",
+                content=bot
+            )
+            
             # Divider if previous role was different
             if len(st.session_state["messages"]) >= 2:
                 prev = st.session_state["messages"][-2]
@@ -785,6 +832,17 @@ if st.session_state.get("page") == "chat":
         bot_text = result["assistant_message"]
         if not crisis_check_bool:
             st.session_state["messages"].append({"role": "assistant", "content": bot_text})
+            
+            # Save assistant response to database with emotion data
+            save_chat_message(
+                user_id=st.session_state.get("user_id"),
+                session_id=st.session_state.get("session_id"),
+                role="assistant",
+                content=bot_text,
+                intent=result.get("intent"),
+                tone=result.get("tone")
+            )
+            
             # Divider if previous role was different
             if len(st.session_state["messages"]) >= 2:
                 prev = st.session_state["messages"][-2]

@@ -1,88 +1,40 @@
 import streamlit as st
-import json
-from pathlib import Path
 from datetime import datetime
 from openai import OpenAI
 import os
+from db_utils import (
+    save_journal_entry as db_save_journal,
+    load_journal_entries as db_load_journal,
+    get_latest_chat_emotion,
+    get_recent_user_messages
+)
 
 def save_journal_entry(entry_data):
-    """Save a journal entry to the journal log file"""
-    log_path = Path("logs/journal_entries.jsonl")
-    log_path.parent.mkdir(parents=True, exist_ok=True)
+    """Save a journal entry to the database"""
+    user_id = st.session_state.get("user_id")
+    session_id = st.session_state.get("session_id")
     
-    with open(log_path, "a", encoding="utf-8") as f:
-        f.write(json.dumps(entry_data, ensure_ascii=False) + "\n")
+    db_save_journal(
+        user_id=user_id,
+        session_id=session_id,
+        content=entry_data.get("content"),
+        ai_prompt=entry_data.get("ai_prompt")
+    )
 
 def load_journal_entries():
-    """Load all journal entries for the current session"""
-    log_path = Path("logs/journal_entries.jsonl")
-    if not log_path.exists():
-        return []
-    
-    current_session = st.session_state.get("session_id")
-    entries = []
-    
-    with open(log_path, "r", encoding="utf-8") as f:
-        for line in f:
-            if line.strip():
-                entry = json.loads(line)
-                if entry.get("session_id") == current_session:
-                    entries.append(entry)
-    
-    # Sort by timestamp, newest first
-    entries.sort(key=lambda x: x.get("timestamp", ""), reverse=True)
-    return entries
-
-def get_latest_chat_emotion():
-    """Get the most recent emotion and chat context from chat logs"""
-    log_path = Path("logs/chat_sessions.jsonl")
-    if not log_path.exists():
-        return None
-    
-    current_session = st.session_state.get("session_id")
-    emotions = []
-    
-    with open(log_path, "r", encoding="utf-8") as f:
-        for line in f:
-            if line.strip():
-                entry = json.loads(line)
-                if entry.get("session_id") == current_session:
-                    emotions.append(entry)
-    
-    if emotions:
-        emotions.sort(key=lambda x: x.get("ts_utc", ""))
-        # Get the most recent 3 entries for context
-        recent_entries = emotions[-3:] if len(emotions) >= 3 else emotions
-        
-        return {
-            "recent_emotions": [
-                {
-                    "intent": e.get("intent", "other"),
-                    "tone": e.get("tone", "neutral")
-                } for e in recent_entries
-            ],
-            "latest_intent": emotions[-1].get("intent", "other"),
-            "latest_tone": emotions[-1].get("tone", "neutral")
-        }
-    return None
+    """Load all journal entries for the current user"""
+    user_id = st.session_state.get("user_id")
+    return db_load_journal(user_id)
 
 def get_recent_chat_messages():
     """Get recent chat messages for context"""
-    messages = st.session_state.get("messages", [])
-    # Get last 6 messages (3 user + 3 assistant pairs max) for context
-    recent = messages[-6:] if len(messages) > 6 else messages
-    
-    # Extract user messages with some context
-    user_messages = []
-    for i, msg in enumerate(recent):
-        if msg.get("role") == "user":
-            content = msg.get("content", "")
-            # Truncate very long messages
-            if len(content) > 200:
-                content = content[:200] + "..."
-            user_messages.append(content)
-    
-    return user_messages
+    user_id = st.session_state.get("user_id")
+    return get_recent_user_messages(user_id)
+
+def get_latest_emotion():
+    """Get the most recent emotion data"""
+    user_id = st.session_state.get("user_id")
+    return get_latest_chat_emotion(user_id)
 
 def generate_journal_prompt(emotion_data):
     """Generate an AI-guided journal prompt based on the user's last message"""
@@ -215,7 +167,7 @@ def render_journal_write():
     if st.session_state.get("show_prompt", False):
         if st.session_state.get("current_prompt") is None:
             with st.spinner("Generating prompt..."):
-                emotion_data = get_latest_chat_emotion()
+                emotion_data = get_latest_emotion()
                 prompt = generate_journal_prompt(emotion_data)
                 st.session_state["current_prompt"] = prompt
         

@@ -1,6 +1,4 @@
 import streamlit as st
-import json
-from pathlib import Path
 from datetime import datetime, timezone, timedelta
 import plotly.graph_objects as go
 from openai import OpenAI
@@ -8,6 +6,7 @@ import os
 from PIL import Image
 import base64
 from io import BytesIO
+from db_utils import get_user_chat_history
 
 def image_to_base64(img):
     """Convert PIL Image to base64 string"""
@@ -20,23 +19,10 @@ def render_timeline():
     st.title("Emotional Timeline")
     st.markdown("Track your emotional journey over time.")
     
-    # Load emotion logs for current session
+    # Load emotion logs for current user
     def load_timeline_emotions():
-        log_path = Path("logs/chat_sessions.jsonl")
-        if not log_path.exists():
-            return []
-        
-        current_session = st.session_state["session_id"]
-        emotions = []
-        with open(log_path, "r", encoding="utf-8") as f:
-            for line in f:
-                if line.strip():
-                    entry = json.loads(line)
-                    if entry.get("session_id") == current_session:
-                        emotions.append(entry)
-        
-        emotions.sort(key=lambda x: x.get("ts_utc", ""))
-        return emotions
+        user_id = st.session_state.get("user_id")
+        return get_user_chat_history(user_id)
     
     # Map emotions to numerical values
     EMOTION_INTENSITY = {
