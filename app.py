@@ -12,6 +12,7 @@ from timeline_page import render_timeline
 from emotions_page import render_emotions
 from info_page import render_info
 from welcome_screen import show_welcome_screen
+from journal_page import render_journal
 import json
 import html
 import base64
@@ -241,6 +242,11 @@ if st.sidebar.button("timeline", key="sidebar_timeline"):
     st.session_state["page"] = "timeline"
     st.rerun()
 
+# Journal page button
+if st.sidebar.button("journal", key="sidebar_journal"):
+    st.session_state["page"] = "journal"
+    st.rerun()
+
 # Info page button
 if st.sidebar.button("interact", key="sidebar_info"):
     st.session_state["page"] = "info"
@@ -315,6 +321,21 @@ if st.session_state.get("page") == "timeline":
         unsafe_allow_html=True
     )
     render_timeline()
+    st.stop()
+
+# Journal page
+if st.session_state.get("page") == "journal":
+    st.markdown(
+        """
+        <style>
+        .stApp {
+            background-color: #FAF7F5;
+        }
+        </style>
+        """,
+        unsafe_allow_html=True
+    )
+    render_journal()
     st.stop()
 
 # Info page
