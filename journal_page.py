@@ -34,7 +34,7 @@ def load_journal_entries():
     return entries
 
 def get_latest_chat_emotion():
-    """Get the most recent emotion from chat logs"""
+    """Get the most recent emotion and chat context from chat logs"""
     log_path = Path("logs/chat_sessions.jsonl")
     if not log_path.exists():
         return None
@@ -51,51 +51,84 @@ def get_latest_chat_emotion():
     
     if emotions:
         emotions.sort(key=lambda x: x.get("ts_utc", ""))
-        latest = emotions[-1]
+        # Get the most recent 3 entries for context
+        recent_entries = emotions[-3:] if len(emotions) >= 3 else emotions
+        
         return {
-            "intent": latest.get("intent", "other"),
-            "tone": latest.get("tone", "neutral")
+            "recent_emotions": [
+                {
+                    "intent": e.get("intent", "other"),
+                    "tone": e.get("tone", "neutral")
+                } for e in recent_entries
+            ],
+            "latest_intent": emotions[-1].get("intent", "other"),
+            "latest_tone": emotions[-1].get("tone", "neutral")
         }
     return None
 
+def get_recent_chat_messages():
+    """Get recent chat messages for context"""
+    messages = st.session_state.get("messages", [])
+    # Get last 6 messages (3 user + 3 assistant pairs max) for context
+    recent = messages[-6:] if len(messages) > 6 else messages
+    
+    # Extract user messages with some context
+    user_messages = []
+    for i, msg in enumerate(recent):
+        if msg.get("role") == "user":
+            content = msg.get("content", "")
+            # Truncate very long messages
+            if len(content) > 200:
+                content = content[:200] + "..."
+            user_messages.append(content)
+    
+    return user_messages
+
 def generate_journal_prompt(emotion_data):
-    """Generate an AI-guided journal prompt based on recent emotions"""
+    """Generate an AI-guided journal prompt based on the user's last message"""
     client = OpenAI(api_key=os.getenv("OPENAI_API_KEY"))
     
-    if emotion_data:
-        intent = emotion_data.get("intent", "other")
-        tone = emotion_data.get("tone", "neutral")
+    # Get the user's most recent chat message
+    user_messages = get_recent_chat_messages()
+    
+    if user_messages:
+        last_message = user_messages[-1]  # Focus on the very last message
+        context = f"The user just said: \"{last_message}\""
+    elif emotion_data:
+        intent = emotion_data.get("latest_intent", "other")
+        tone = emotion_data.get("latest_tone", "neutral")
         context = f"The user recently expressed feeling {intent} with a {tone} tone."
     else:
-        context = "No recent emotional data available."
+        context = "No recent chat data available."
     
     prompt = f"""You are Juno, a creative journal prompt generator for teens.
     
 {context}
 
-Generate ONE short, creative journal prompt (1-2 sentences MAX) that:
-- Gives them a specific, concrete way to explore their feelings
-- Uses a simple but interesting angle (time, scenarios, objects, etc.)
-- Feels fresh and engaging, NOT generic
-- Avoids just restating their feelings back to them
-- Gets them writing freely without overthinking
+Based on what the user JUST shared in their last message, generate ONE short, creative journal prompt (1-2 sentences MAX) that:
+- Connects directly to what they JUST talked about in their last message
+- Gives them a concrete, creative way to explore that specific topic deeper
+- Uses an interesting angle (scenarios, objects, time, "what if" questions)
+- Feels personal and relevant to what THEY just said, not generic
+- Avoids just asking "how do you feel" or restating what they said
+
 
 Good examples:
 - "What's one thing you wish you could tell someone right now but haven't yet?"
 - "If you could pause time for 10 minutes today, what would you do in that silence?"
-- "Write about a moment today when you felt completely yourself."
+- "Choose a random object near you. If it could narrate your day honestly, what would it say?"
 
-Keep it brief, specific, and real. Just provide the prompt, nothing else."""
+Keep it brief, specific, and connected to their LAST message. Just provide the prompt, nothing else."""
 
     try:
         response = client.chat.completions.create(
             model="gpt-4o-mini",
             messages=[
-                {"role": "system", "content": "You are Juno, a creative AI companion for teens. Generate brief, specific journal prompts that feel fresh and authentic."},
+                {"role": "system", "content": "You are Juno, a creative AI companion for teens. Generate brief, specific journal prompts based on what the user just shared."},
                 {"role": "user", "content": prompt}
             ],
             temperature=0.85,
-            max_tokens=80
+            max_tokens=100
         )
         return response.choices[0].message.content.strip()
     except Exception:
@@ -103,13 +136,13 @@ Keep it brief, specific, and real. Just provide the prompt, nothing else."""
 
 def render_journal_gallery():
     """Render the journal gallery page"""
-    st.title("📔 Journal")
+    st.title("Journal")
     st.markdown("Your personal space for reflection and self-expression.")
     
     # New Entry Button
     col1, col2 = st.columns([1, 3])
     with col1:
-        if st.button("✨ New Entry", key="new_journal_entry", use_container_width=True):
+        if st.button(" new entry", key="new_journal_entry", use_container_width=True):
             st.session_state["journal_view"] = "write"
             st.rerun()
     
@@ -121,7 +154,7 @@ def render_journal_gallery():
     if not entries:
         st.markdown(
             '<div style="background-color: #e8f4f8; color: #0c5460; padding: 20px; border-radius: 12px; text-align: center; margin-top: 40px;">'
-            '<p style="font-size: 1.1rem; margin-bottom: 8px;">🌱 Your journal is waiting for you</p>'
+            '<p style="font-size: 1.1rem; margin-bottom: 8px;">🌱 your journal is waiting for you!</p>'
             '<p style="font-size: 0.9rem; color: #6b8e7f;">Start writing to capture your thoughts and feelings.</p>'
             '</div>',
             unsafe_allow_html=True
@@ -138,7 +171,7 @@ def render_journal_gallery():
                 date_str = entry.get("timestamp", "Unknown date")
             
             # Create expandable entry card
-            with st.expander(f"📝 {date_str}", expanded=(idx == 0)):
+            with st.expander(f"✎ {date_str}", expanded=(idx == 0)):
                 content = entry.get("content", "")
                 
                 # Display content
@@ -152,7 +185,7 @@ def render_journal_gallery():
                 # Show prompt if it was AI-guided
                 if entry.get("ai_prompt"):
                     st.markdown(
-                        f'<p style="font-size: 0.85rem; color: #6b8e7f; margin-top: 10px; font-style: italic;">💭 Prompt: {entry["ai_prompt"]}</p>',
+                        f'<p style="font-size: 0.85rem; color: #6b8e7f; margin-top: 10px; font-style: italic;">💭 prompt: {entry["ai_prompt"]}</p>',
                         unsafe_allow_html=True
                     )
     
@@ -169,12 +202,12 @@ def render_journal_write():
     # Get current date
     current_date = datetime.now().strftime("%B %d, %Y")
     
-    st.title(f"📝 {current_date}")
+    st.title(f" {current_date}")
     
     # AI Prompt section
     col1, col2 = st.columns([3, 1])
     with col2:
-        if st.button("✨ AI-guided prompt", key="ai_prompt_btn", use_container_width=True):
+        if st.button("✨ guided prompt", key="ai_prompt_btn", use_container_width=True):
             st.session_state["show_prompt"] = True
             st.session_state["current_prompt"] = None
     
@@ -199,7 +232,7 @@ def render_journal_write():
         # Regenerate and Discard buttons
         btn_col1, btn_col2, btn_col3 = st.columns([1, 1, 3])
         with btn_col1:
-            if st.button("regenerate", key="regenerate_prompt"):
+            if st.button("regenerate ⟳", key="regenerate_prompt"):
                 st.session_state["current_prompt"] = None
                 st.rerun()
         with btn_col2:
@@ -209,6 +242,25 @@ def render_journal_write():
                 st.rerun()
     
     st.divider()
+    
+    # Custom CSS for green border on text area with notebook lines
+    st.markdown("""
+        <style>
+        textarea[aria-label="Start writing..."] {
+            border: 3px solid #8fc5a3 !important;
+            background-color: #f8f9fa !important;
+            background-image: repeating-linear-gradient(
+                transparent,
+                transparent 31px,
+                #d1d5db 31px,
+                #d1d5db 32px
+            ) !important;
+            line-height: 32px !important;
+            padding-top: 8px !important;
+            padding-bottom: 8px !important;
+        }
+        </style>
+    """, unsafe_allow_html=True)
     
     # Text area for writing
     journal_content = st.text_area(
@@ -225,7 +277,7 @@ def render_journal_write():
     col1, col2, col3 = st.columns([1, 1, 3])
     
     with col1:
-        if st.button("💾 Save Entry", key="save_journal", use_container_width=True):
+        if st.button("✎ save", key="save_journal", use_container_width=True):
             if journal_content.strip():
                 # Save entry
                 entry_data = {
@@ -241,13 +293,13 @@ def render_journal_write():
                 st.session_state["current_prompt"] = None
                 st.session_state["journal_view"] = "gallery"
                 
-                st.success("✓ Entry saved!")
+                st.success("✓ entry saved!")
                 st.rerun()
             else:
-                st.warning("Please write something before saving.")
+                st.warning("please write something before saving.")
     
     with col2:
-        if st.button("← Back to Gallery", key="back_to_gallery", use_container_width=True):
+        if st.button("← gallery", key="back_to_gallery", use_container_width=True):
             st.session_state["journal_view"] = "gallery"
             st.session_state["show_prompt"] = False
             st.session_state["current_prompt"] = None
