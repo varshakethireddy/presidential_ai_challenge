@@ -69,31 +69,37 @@ def generate_journal_prompt(emotion_data):
     else:
         context = "No recent emotional data available."
     
-    prompt = f"""You are Juno, a compassionate journal prompt generator for teens.
+    prompt = f"""You are Juno, a creative journal prompt generator for teens.
     
 {context}
 
-Generate ONE thoughtful, gentle journal prompt that:
-- Helps them explore their feelings
-- Is age-appropriate for teens
-- Encourages self-reflection without being overwhelming
-- Is 1-2 sentences max
+Generate ONE short, creative journal prompt (1-2 sentences MAX) that:
+- Gives them a specific, concrete way to explore their feelings
+- Uses a simple but interesting angle (time, scenarios, objects, etc.)
+- Feels fresh and engaging, NOT generic
+- Avoids just restating their feelings back to them
+- Gets them writing freely without overthinking
 
-Just provide the prompt, nothing else."""
+Good examples:
+- "What's one thing you wish you could tell someone right now but haven't yet?"
+- "If you could pause time for 10 minutes today, what would you do in that silence?"
+- "Write about a moment today when you felt completely yourself."
+
+Keep it brief, specific, and real. Just provide the prompt, nothing else."""
 
     try:
         response = client.chat.completions.create(
             model="gpt-4o-mini",
             messages=[
-                {"role": "system", "content": "You are Juno, a compassionate AI companion for teens. Generate supportive journal prompts."},
+                {"role": "system", "content": "You are Juno, a creative AI companion for teens. Generate brief, specific journal prompts that feel fresh and authentic."},
                 {"role": "user", "content": prompt}
             ],
-            temperature=0.8,
-            max_tokens=100
+            temperature=0.85,
+            max_tokens=80
         )
         return response.choices[0].message.content.strip()
     except Exception:
-        return "What's been on your mind today?"
+        return "What's something small that happened today that actually mattered to you?"
 
 def render_journal_gallery():
     """Render the journal gallery page"""
@@ -193,11 +199,11 @@ def render_journal_write():
         # Regenerate and Discard buttons
         btn_col1, btn_col2, btn_col3 = st.columns([1, 1, 3])
         with btn_col1:
-            if st.button("🔄 Regenerate", key="regenerate_prompt"):
+            if st.button("regenerate", key="regenerate_prompt"):
                 st.session_state["current_prompt"] = None
                 st.rerun()
         with btn_col2:
-            if st.button("✕ Discard", key="discard_prompt"):
+            if st.button("discard", key="discard_prompt"):
                 st.session_state["show_prompt"] = False
                 st.session_state["current_prompt"] = None
                 st.rerun()
