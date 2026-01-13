@@ -1,5 +1,5 @@
 """Database models and setup for Juno Teen Coach"""
-from sqlalchemy import create_engine, Column, Integer, String, Text, DateTime, ForeignKey
+from sqlalchemy import create_engine, Column, Integer, String, Text, DateTime, ForeignKey, Float
 from sqlalchemy.ext.declarative import declarative_base
 from sqlalchemy.orm import sessionmaker, relationship
 from datetime import datetime
@@ -38,6 +38,8 @@ class ChatSession(Base):
     content = Column(Text, nullable=False)
     intent = Column(String(50), nullable=True)
     tone = Column(String(50), nullable=True)
+    intent_confidence = Column(Float, nullable=True)
+    tone_confidence = Column(Float, nullable=True)
     timestamp = Column(DateTime, default=datetime.utcnow)
     
     # Relationship

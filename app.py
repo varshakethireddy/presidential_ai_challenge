@@ -221,6 +221,10 @@ else:
 if "page" not in st.session_state:
     st.session_state["page"] = "home"
 
+# Initialize session_id for this user (needed for all pages)
+if "session_id" not in st.session_state:
+    st.session_state["session_id"] = str(uuid.uuid4())
+
 # Only show the top-row reset button and page title when on the chat page
 if st.session_state.get("page") == "chat":
     st.markdown(
@@ -247,9 +251,6 @@ if st.session_state.get("page") == "chat":
 
     st.title("💬 Juno AI")
     st.caption("A teen-focused coping-skills coach, not a therapist")
-
-if "session_id" not in st.session_state:
-    st.session_state["session_id"] = str(uuid.uuid4())
 
 # Initialize session state
 if "messages" not in st.session_state:
@@ -723,14 +724,6 @@ if st.session_state.get("page") == "chat":
         # Add user message to session and render with custom avatar (avoid Streamlit default avatar)
         st.session_state["messages"].append({"role": "user", "content": user_text})
         
-        # Save user message to database
-        save_chat_message(
-            user_id=st.session_state.get("user_id"),
-            session_id=st.session_state.get("session_id"),
-            role="user",
-            content=user_text
-        )
-        
         _render_message_with_avatar({"role": "user", "content": user_text})
 
         # Safety first
@@ -739,7 +732,18 @@ if st.session_state.get("page") == "chat":
             bot = crisis_response()
             st.session_state["messages"].append({"role": "assistant", "content": bot})
             
-            # Save crisis response to database
+            # Save user message and crisis response to database
+            save_chat_message(
+                user_id=st.session_state.get("user_id"),
+                session_id=st.session_state.get("session_id"),
+                role="user",
+                content=user_text,
+                intent="crisis",
+                tone="urgent",
+                intent_confidence=1.0,
+                tone_confidence=1.0
+            )
+            
             save_chat_message(
                 user_id=st.session_state.get("user_id"),
                 session_id=st.session_state.get("session_id"),
@@ -753,7 +757,7 @@ if st.session_state.get("page") == "chat":
                 if prev.get("role") != "assistant":
                     st.markdown("<hr style='border:none;border-top:1px solid #eee;margin:8px 0;'/>", unsafe_allow_html=True)
             _render_message_with_avatar({"role": "assistant", "content": bot})
-            #st.stop()
+            st.stop()
 
         # Show typing indicator while processing
         typing_placeholder = st.empty()
@@ -851,14 +855,27 @@ if st.session_state.get("page") == "chat":
         if not crisis_check_bool:
             st.session_state["messages"].append({"role": "assistant", "content": bot_text})
             
-            # Save assistant response to database with emotion data
+            # Save user message with emotion data (now that we have it from the model)
+            # Find the user message we just received (it's the second-to-last message now)
+            user_msg_index = len(st.session_state["messages"]) - 2
+            if user_msg_index >= 0 and st.session_state["messages"][user_msg_index]["role"] == "user":
+                save_chat_message(
+                    user_id=st.session_state.get("user_id"),
+                    session_id=st.session_state.get("session_id"),
+                    role="user",
+                    content=st.session_state["messages"][user_msg_index]["content"],
+                    intent=result.get("intent"),
+                    tone=result.get("tone"),
+                    intent_confidence=result.get("intent_confidence"),
+                    tone_confidence=result.get("tone_confidence")
+                )
+            
+            # Save assistant response to database WITHOUT emotion data (emotions belong to user only)
             save_chat_message(
                 user_id=st.session_state.get("user_id"),
                 session_id=st.session_state.get("session_id"),
                 role="assistant",
-                content=bot_text,
-                intent=result.get("intent"),
-                tone=result.get("tone")
+                content=bot_text
             )
             
             # Divider if previous role was different

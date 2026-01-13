@@ -1,6 +1,8 @@
 """Authentication module for user login and signup"""
 import streamlit as st
 import bcrypt
+import json
+from pathlib import Path
 from database import User, get_db
 
 def hash_password(password: str) -> str:
@@ -12,6 +14,35 @@ def hash_password(password: str) -> str:
 def verify_password(password: str, password_hash: str) -> bool:
     """Verify a password against its hash"""
     return bcrypt.checkpw(password.encode('utf-8'), password_hash.encode('utf-8'))
+
+def export_users_to_json():
+    """Export all users to a JSON file for easy viewing"""
+    db = get_db()
+    try:
+        users = db.query(User).all()
+        users_list = []
+        
+        for user in users:
+            users_list.append({
+                "id": user.id,
+                "username": user.username,
+                "email": user.email,
+                "created_at": user.created_at.isoformat() if user.created_at else None
+            })
+        
+        # Save to JSON file
+        output_file = Path("logs/users.json")
+        output_file.parent.mkdir(exist_ok=True)
+        
+        with open(output_file, 'w', encoding='utf-8') as f:
+            json.dump(users_list, f, indent=2, ensure_ascii=False)
+        
+        return True
+    except Exception as e:
+        print(f"Error exporting users: {e}")
+        return False
+    finally:
+        db.close()
 
 def create_user(username: str, password: str, email: str = None) -> tuple[bool, str]:
     """Create a new user account"""
@@ -38,6 +69,9 @@ def create_user(username: str, password: str, email: str = None) -> tuple[bool, 
         db.add(new_user)
         db.commit()
         db.refresh(new_user)
+        
+        # Export users to JSON file after creating new user
+        export_users_to_json()
         
         return True, "Account created successfully!"
     except Exception as e:
