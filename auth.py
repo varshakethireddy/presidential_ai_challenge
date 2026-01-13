@@ -81,8 +81,17 @@ def render_auth_page():
     col1, col2, col3 = st.columns([1, 2, 1])
     
     with col2:
-        st.markdown("<h1 style='text-align: center; color: #8fc5a3;'>🌟 Juno</h1>", unsafe_allow_html=True)
-        st.markdown("<p style='text-align: center; color: #6b8e7f; margin-bottom: 30px;'>Your AI companion for emotional well-being</p>", unsafe_allow_html=True)
+        st.markdown("<h1 style='text-align: center; color: #8fc5a3;'>🌟 juno</h1>", unsafe_allow_html=True)
+        st.markdown("<p style='text-align: center; color: #6b8e7f; margin-bottom: 10px;'>Your AI companion for emotional well-being</p>", unsafe_allow_html=True)
+        
+        # Add custom CSS to shift radio buttons to the right
+        st.markdown("""
+            <style>
+            div[role="radiogroup"] {
+                margin-left: 2cm;
+            }
+            </style>
+        """, unsafe_allow_html=True)
         
         # Toggle between login and signup
         auth_mode = st.radio("", ["Login", "Sign Up"], horizontal=True, label_visibility="collapsed")

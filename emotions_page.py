@@ -6,7 +6,7 @@ from collections import Counter
 
 def render_emotions():
     """Render the emotions analytics page"""
-    st.title("Emotion Analytics")
+    st.markdown("<h1 style='font-family: ChickenRice, cursive, sans-serif;'>Emotion Analytics</h1>", unsafe_allow_html=True)
     st.markdown("Track your emotional journey during this session.")
     
     # Load emotion logs from chat_sessions.jsonl
