@@ -35,6 +35,24 @@ if not is_authenticated():
     render_auth_page()
     st.stop()
 
+# Load custom font globally for all pages
+with open('fonts/Chicken Rice.otf', 'rb') as f:
+    font_data = base64.b64encode(f.read()).decode()
+
+st.markdown(
+    f"""
+    <style>
+    @font-face {{
+        font-family: 'ChickenRice';
+        src: url(data:font/opentype;base64,{font_data}) format('opentype');
+        font-weight: normal;
+        font-style: normal;
+    }}
+    </style>
+    """,
+    unsafe_allow_html=True
+)
+
 # Custom button styling: make buttons look like pastel green rounded "bubbles".
 # Scoped to `.stButton > button:first-child` so it primarily affects the left/top button.
 st.markdown(
@@ -408,19 +426,9 @@ if st.session_state.get("page", "chat") == "home":
     with open('data/avatars/sprout.gif', 'rb') as f:
         gif_data = base64.b64encode(f.read()).decode()
     
-    # Load custom font
-    with open('fonts/Chicken Rice.otf', 'rb') as f:
-        font_data = base64.b64encode(f.read()).decode()
-    
     st.markdown(
         f"""
         <style>
-        @font-face {{
-            font-family: 'ChickenRice';
-            src: url(data:font/opentype;base64,{font_data}) format('opentype');
-            font-weight: normal;
-            font-style: normal;
-        }}
         .home-title-container {{
             position: relative;
             display: inline-block;
@@ -451,14 +459,15 @@ if st.session_state.get("page", "chat") == "home":
         """,
         unsafe_allow_html=True
     )
-    
+   
     st.markdown(
         f"""
         **Welcome back, {st.session_state.get('username', 'User')}!** 
-         a friendly place to learn quick coping skills,
-        find calming exercises, and get directed to help if you're in crisis.
-
-        This is a placeholder home page you can edit later.
+        
+        ---
+        
+        Juno AI is designed to help teens strengthen emotional wellness through quick coping strategies, calming activities, and reflection tools.
+        If you're in crisis, we'll immediately guide you to appropriate help.
         """
     )
     st.write("Helpful links and project info can go here.")

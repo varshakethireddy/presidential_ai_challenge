@@ -16,7 +16,7 @@ def image_to_base64(img):
 
 def render_timeline():
     """Render the emotional timeline page"""
-    st.title("Emotional Timeline")
+    st.markdown("<h1 style='font-family: ChickenRice, cursive, sans-serif;'>Emotional Timeline</h1>", unsafe_allow_html=True)
     st.markdown("Track your emotional journey over time.")
     
     # Load emotion logs for current user

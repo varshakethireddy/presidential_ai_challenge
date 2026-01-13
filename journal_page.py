@@ -88,13 +88,13 @@ Keep it brief, specific, and connected to their LAST message. Just provide the p
 
 def render_journal_gallery():
     """Render the journal gallery page"""
-    st.title("Journal")
+    st.markdown("<h1 style='font-family: ChickenRice, cursive, sans-serif;'>Journal</h1>", unsafe_allow_html=True)
     st.markdown("Your personal space for reflection and self-expression.")
     
     # New Entry Button
     col1, col2 = st.columns([1, 3])
     with col1:
-        if st.button(" new entry", key="new_journal_entry", use_container_width=True):
+        if st.button("✢ new entry", key="new_journal_entry", use_container_width=True):
             st.session_state["journal_view"] = "write"
             st.rerun()
     

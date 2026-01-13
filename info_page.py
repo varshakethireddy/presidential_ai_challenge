@@ -2,7 +2,7 @@ import streamlit as st
 
 def render_info():
     """Render the interact/how to use page"""
-    st.title("How to Interact with Juno")
+    st.markdown("<h1 style='font-family: ChickenRice, cursive, sans-serif;'>How to Interact with Juno</h1>", unsafe_allow_html=True)
     
     st.markdown("""
     ### Getting Started
