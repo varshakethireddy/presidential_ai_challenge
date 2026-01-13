@@ -4,3 +4,4 @@ logs/chat_sessions.jsonl
 data/*
 fonts/*
 logs/*
+juno_data.db
