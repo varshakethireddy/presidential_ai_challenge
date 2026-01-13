@@ -1,51 +1,43 @@
 import streamlit as st
-import json
-from pathlib import Path
 from datetime import datetime, timezone, timedelta
 from collections import Counter
+from db_utils import load_chat_messages
 
 def render_emotions():
     """Render the emotions analytics page"""
     st.markdown("<h1 style='font-family: ChickenRice, cursive, sans-serif;'>Emotion Analytics</h1>", unsafe_allow_html=True)
     st.markdown("Track your emotional journey during this session.")
     
-    # Load emotion logs from chat_sessions.jsonl
+    # Load emotion logs from database
     def load_emotion_logs():
-        """Load and parse emotion data from chat_sessions.jsonl"""
-        log_path = Path("logs/chat_sessions.jsonl")
+        """Load and parse emotion data from database for current session"""
+        user_id = st.session_state.get("user_id")
+        session_id = st.session_state.get("session_id")
+        
+        if not user_id or not session_id:
+            return []
+        
+        # Load messages from database
+        messages = load_chat_messages(user_id, session_id)
+        
         emotions = []
-        
-        if not log_path.exists():
-            return emotions
-        
-        try:
-            with open(log_path, "r", encoding="utf-8") as f:
-                for line in f:
-                    if line.strip():
-                        entry = json.loads(line)
-                        # Extract relevant fields
-                        emotions.append({
-                            "timestamp": entry.get("ts_utc", ""),
-                            "intent": entry.get("intent", "unknown"),
-                            "tone": entry.get("tone", "unknown"),
-                            "intent_confidence": entry.get("intent_confidence", 0.0),
-                            "tone_confidence": entry.get("tone_confidence", 0.0),
-                            "risk_level": entry.get("risk_level", "unknown"),
-                            "session_id": entry.get("session_id", ""),
-                            "turn_index": entry.get("turn_index", 0)
-                        })
-        except Exception as e:
-            st.error(f"Error loading emotion logs: {e}")
+        for idx, msg in enumerate(messages):
+            if msg.get("intent"):  # Only include messages with emotion data
+                emotions.append({
+                    "timestamp": msg.get("timestamp", ""),
+                    "intent": msg.get("intent", "unknown"),
+                    "tone": msg.get("tone", "unknown"),
+                    "intent_confidence": 0.9,  # Database doesn't store confidence
+                    "tone_confidence": 0.9,
+                    "risk_level": "low",  # Can be enhanced if needed
+                    "session_id": session_id,
+                    "turn_index": idx
+                })
         
         return emotions
     
-    # Filter to current session only (show all messages including casual)
-    emotion_logs = load_emotion_logs()
-    current_session_id = st.session_state.get("session_id", "")
-    session_emotions = [
-        e for e in emotion_logs 
-        if e["session_id"] == current_session_id
-    ]
+    # Get emotions for current session
+    session_emotions = load_emotion_logs()
     
     if not session_emotions:
         st.markdown(
