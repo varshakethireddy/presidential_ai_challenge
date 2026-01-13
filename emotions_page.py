@@ -27,8 +27,8 @@ def render_emotions():
                     "timestamp": msg.get("timestamp", ""),
                     "intent": msg.get("intent", "unknown"),
                     "tone": msg.get("tone", "unknown"),
-                    "intent_confidence": 0.9,  # Database doesn't store confidence
-                    "tone_confidence": 0.9,
+                    "intent_confidence": msg.get("intent_confidence", 0.5),
+                    "tone_confidence": msg.get("tone_confidence", 0.5),
                     "risk_level": "low",  # Can be enhanced if needed
                     "session_id": session_id,
                     "turn_index": idx

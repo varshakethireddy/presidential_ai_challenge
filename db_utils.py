@@ -3,7 +3,8 @@ from database import ChatSession, JournalEntry, get_db
 from datetime import datetime
 
 def save_chat_message(user_id: int, session_id: str, role: str, content: str, 
-                     intent: str = None, tone: str = None):
+                     intent: str = None, tone: str = None,
+                     intent_confidence: float = None, tone_confidence: float = None):
     """Save a chat message to the database"""
     db = get_db()
     try:
@@ -14,6 +15,8 @@ def save_chat_message(user_id: int, session_id: str, role: str, content: str,
             content=content,
             intent=intent,
             tone=tone,
+            intent_confidence=intent_confidence,
+            tone_confidence=tone_confidence,
             timestamp=datetime.utcnow()
         )
         db.add(message)
@@ -39,6 +42,8 @@ def load_chat_messages(user_id: int, session_id: str):
                 "content": msg.content,
                 "intent": msg.intent,
                 "tone": msg.tone,
+                "intent_confidence": msg.intent_confidence,
+                "tone_confidence": msg.tone_confidence,
                 "timestamp": msg.timestamp.isoformat()
             }
             for msg in messages
