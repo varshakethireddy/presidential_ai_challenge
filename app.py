@@ -422,14 +422,28 @@ if st.session_state.get("page", "chat") == "home":
         """,
         unsafe_allow_html=True
     )
-    # Display title with animated sprout gif overlay
+    # Display title with animated sprout gif overlay and emotions icon button
     import base64
     with open('data/avatars/sprout.gif', 'rb') as f:
         gif_data = base64.b64encode(f.read()).decode()
     
+    # Load emotions icon for the button
+    try:
+        with open('data/avatars/juno_emotions.png', 'rb') as f:
+            emotions_icon_data = base64.b64encode(f.read()).decode()
+        has_emotions_icon = True
+    except:
+        has_emotions_icon = False
+    
     st.markdown(
         f"""
         <style>
+        .home-header-container {{
+            display: flex;
+            justify-content: space-between;
+            align-items: center;
+            margin-bottom: 20px;
+        }}
         .home-title-container {{
             position: relative;
             display: inline-block;
@@ -452,41 +466,26 @@ if st.session_state.get("page", "chat") == "home":
             pointer-events: none;
             z-index: 1;
         }}
+        /* Green hyperlinks on home page */
+        .main a {{
+            color: #2d5f4a !important;
+        }}
+        .main a:hover {{
+            color: #1a3d2e !important;
+        }}
         </style>
-        <div class="home-title-container">
-            <img src="data:image/gif;base64,{gif_data}" class="sprout-overlay">
-            <h1 class="home-title-text">juno ai</h1>
+        <div class="home-header-container">
+            <div class="home-title-container">
+                <img src="data:image/gif;base64,{gif_data}" class="sprout-overlay">
+                <h1 class="home-title-text">juno ai</h1>
+            </div>
         </div>
         """,
         unsafe_allow_html=True
     )
-   
-    st.markdown(
-        f"""
-        **Welcome back, {st.session_state.get('username', 'User')}!** 
-        
-        ---
-        
-        Juno AI is designed to help teens strengthen emotional wellness through quick coping strategies, calming activities, and reflection tools.
-        If you're in crisis, we'll immediately guide you to appropriate help.
-        """
-    )
-    st.write("Helpful links and project info can go here.")
     
-    if st.button("💬 chat now", key="home_go_chat"):
-        st.session_state["page"] = "chat"
-        st.rerun()
-    
-    # Add some spacing
-    st.write("")
-    st.write("")
-    st.write("")
-    
-    # Circular emotions icon button
-    try:
-        with open('data/avatars/juno_emotions.png', 'rb') as f:
-            emotions_icon_data = base64.b64encode(f.read()).decode()
-        
+    # Circular emotions icon button next to title
+    if has_emotions_icon:
         # CSS to hide the button initially until JavaScript replaces it
         st.markdown("""
             <style>
@@ -494,36 +493,51 @@ if st.session_state.get("page", "chat") == "home":
                 opacity: 0 !important;
                 transition: opacity 0.1s ease-in;
             }
+            .header-button-container {
+                position: fixed;
+                top: 150px;
+                right: 600px;
+                z-index: 999;
+            }
+            .button-label {
+                position: fixed;
+                top: 290px;
+                right: 550px;
+                z-index: 999;
+                font-size: 7px;
+                color: #6b8e7f;
+                text-align: center;
+                white-space: nowrap;
+            }
             </style>
         """, unsafe_allow_html=True)
         
         # Create button with unique placeholder text that will be replaced
         if st.button(".", key="home_emotions_btn"):
-            st.session_state["page"] = "emotions"
+            st.session_state["page"] = "timeline"
             st.rerun()
         
-        # JavaScript to replace button content with image (with retry mechanism)
+        # Add label text below button
+        st.markdown(
+            '<p class="button-label">observe recent emotions</p>',
+            unsafe_allow_html=True
+        )
+        
+        # JavaScript to replace button content with image and position it
+        import random
+        cache_buster = random.randint(1, 1000000)
         st.components.v1.html(
             f"""
             <script>
+                // Cache buster: {cache_buster}
                 function replaceButtonWithImage() {{
                     const buttons = window.parent.document.querySelectorAll('button');
                     let found = false;
                     buttons.forEach(btn => {{
                         if (btn.innerText.trim() === '.') {{
                             btn.innerHTML = '<img src="data:image/png;base64,{emotions_icon_data}" style="width:120px;height:120px;border-radius:50%;object-fit:cover;display:block;margin:0 auto;padding:0;" />';
-                            btn.style.width = '128px';
-                            btn.style.height = '128px';
-                            btn.style.minHeight = '128px';
-                            btn.style.minWidth = '128px';
-                            btn.style.padding = '4px';
-                            btn.style.borderRadius = '50%';
-                            btn.style.border = 'none';
-                            btn.style.display = 'flex';
-                            btn.style.alignItems = 'center';
-                            btn.style.justifyContent = 'center';
-                            btn.style.opacity = '1';
-                            btn.style.transition = 'opacity 0.2s ease-in';
+                            btn.style.cssText = 'width: 128px !important; height: 128px !important; min-height: 128px !important; min-width: 128px !important; padding: 4px !important; border-radius: 50% !important; border: none !important; display: flex !important; align-items: center !important; justify-content: center !important; opacity: 1 !important; transition: opacity 0.2s ease-in !important; position: fixed !important; top: 150px !important; right: 600px !important; z-index: 999 !important; margin: 0 !important;';
+                            
                             found = true;
                         }}
                     }});
@@ -539,8 +553,50 @@ if st.session_state.get("page", "chat") == "home":
             height=0,
             width=0
         )
-    except Exception:
-        pass  # Silently fail if image not found
+    st.markdown(
+        f"""
+        <div style="margin-top: -70px;">
+        
+        **Welcome back, {st.session_state.get('username', 'User')}!** 
+        
+        ---
+        
+        Juno AI is designed to help teens strengthen emotional wellness through quick coping strategies, calming activities, and reflection tools.
+        If you're in crisis, we'll immediately guide you to appropriate help.
+        
+        </div>
+        """,
+        unsafe_allow_html=True
+    )
+    
+    st.markdown(
+        """
+        <style>
+        .resource-links a {
+            color: #2d5f4a !important;
+            text-decoration: none;
+        }
+        .resource-links a:hover {
+            color: #1a3d2e !important;
+            text-decoration: underline;
+        }
+        </style>
+        <div class="resource-links">
+        <p><strong>Helpful Resources:</strong></p>
+        <p><a href="https://988lifeline.org/?utm_source=chatgpt.com" target="_blank">988 Lifeline</a></p>
+        <p><a href="https://www.nimh.nih.gov/health/topics/child-and-adolescent-mental-health?utm_source=chatgpt.com" target="_blank">NIMH: Child and Adolescent Mental Health</a></p>
+        <p><a href="https://mentalhealthliteracy.org/understanding-self-injury-self-harm/" target="_blank">Mental Health Literacy</a></p>
+        </div>
+        """,
+        unsafe_allow_html=True
+    )
+    
+    st.write("")
+    st.write("")
+    
+    if st.button("💬 chat now", key="home_go_chat"):
+        st.session_state["page"] = "chat"
+        st.rerun()
     
     # Show welcome overlay on top of home page
     if st.session_state.get("show_welcome_overlay", False):

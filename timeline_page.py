@@ -329,6 +329,7 @@ Provide a warm, supportive 1-2 sentence insight about their emotional journey. B
                     unsafe_allow_html=True
                 )
     
+    # Close the spinner context
     st.write("")
     st.write("")
     
