@@ -154,11 +154,14 @@ def render_journal_write():
     # Get current date
     current_date = datetime.now().strftime("%B %d, %Y")
     
-    st.title(f" {current_date}")
+    st.markdown(
+        f'<h1 style="font-family: ChickenRice, cursive, sans-serif;">{current_date}</h1>',
+        unsafe_allow_html=True
+    )
     
     # AI Prompt section
-    col1, col2 = st.columns([3, 1])
-    with col2:
+    col1, col2 = st.columns([1, 3])
+    with col1:
         if st.button("✨ guided prompt", key="ai_prompt_btn", use_container_width=True):
             st.session_state["show_prompt"] = True
             st.session_state["current_prompt"] = None
