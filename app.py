@@ -15,6 +15,8 @@ from welcome_screen import show_welcome_screen
 from journal_page import render_journal
 from auth import render_auth_page, is_authenticated, logout
 from db_utils import save_chat_message, load_chat_messages
+from db_utils import get_user_chat_history, load_journal_entries
+from datetime import datetime, timedelta
 import json
 import html
 import base64
@@ -303,14 +305,19 @@ if st.sidebar.button("journal", key="sidebar_journal"):
     st.session_state["page"] = "journal"
     st.rerun()
 
-# Info page button
-if st.sidebar.button("interact", key="sidebar_info"):
+# Guidelines page button (previously "interact")
+if st.sidebar.button("guidelines", key="sidebar_info"):
     st.session_state["page"] = "info"
     st.rerun()
 
-st.sidebar.header("sidebar")
-st.sidebar.write("This demo does not store conversations.")
-dev_mode = st.sidebar.checkbox("Developer mode (show intent)", value=False)
+# Resources page button
+if st.sidebar.button("resources", key="sidebar_resources"):
+    st.session_state["page"] = "resources"
+    st.rerun()
+
+#st.sidebar.header("sidebar")
+#st.sidebar.write("This demo does not store conversations.")
+#dev_mode = st.sidebar.checkbox("Developer mode (show intent)", value=False)
 
 # Avatar images set in code
 # To change the assistant/user profile pictures, edit these paths to point to image files
@@ -362,6 +369,31 @@ if st.session_state.get("page") == "emotions":
         unsafe_allow_html=True
     )
     render_emotions()
+    
+    # Footer
+    st.markdown(
+        """
+        <style>
+        .footer {
+            position: fixed;
+            bottom: 0;
+            left: 0;
+            right: 0;
+            background-color: #FFFCF5;
+            border-top: 2px solid #C8E6D4;
+            padding: 16px 20px;
+            text-align: center;
+            font-size: 0.85rem;
+            color: #6b8e7f;
+            z-index: 500;
+        }
+        </style>
+        <div class="footer">
+            © 2026 Juno AI | Your companion for emotional well-being | Not a substitute for professional help
+        </div>
+        """,
+        unsafe_allow_html=True
+    )
     st.stop()
 
 # Timeline page
@@ -377,6 +409,31 @@ if st.session_state.get("page") == "timeline":
         unsafe_allow_html=True
     )
     render_timeline()
+    
+    # Footer
+    st.markdown(
+        """
+        <style>
+        .footer {
+            position: fixed;
+            bottom: 0;
+            left: 0;
+            right: 0;
+            background-color: #FFFCF5;
+            border-top: 2px solid #C8E6D4;
+            padding: 16px 20px;
+            text-align: center;
+            font-size: 0.85rem;
+            color: #6b8e7f;
+            z-index: 500;
+        }
+        </style>
+        <div class="footer">
+            © 2026 Juno AI | Your companion for emotional well-being | Not a substitute for professional help
+        </div>
+        """,
+        unsafe_allow_html=True
+    )
     st.stop()
 
 # Journal page
@@ -392,6 +449,31 @@ if st.session_state.get("page") == "journal":
         unsafe_allow_html=True
     )
     render_journal()
+    
+    # Footer
+    st.markdown(
+        """
+        <style>
+        .footer {
+            position: fixed;
+            bottom: 0;
+            left: 0;
+            right: 0;
+            background-color: #FFFCF5;
+            border-top: 2px solid #C8E6D4;
+            padding: 16px 20px;
+            text-align: center;
+            font-size: 0.85rem;
+            color: #6b8e7f;
+            z-index: 500;
+        }
+        </style>
+        <div class="footer">
+            © 2026 Juno AI | Your companion for emotional well-being | Not a substitute for professional help
+        </div>
+        """,
+        unsafe_allow_html=True
+    )
     st.stop()
 
 # Info page
@@ -407,6 +489,138 @@ if st.session_state.get("page") == "info":
         unsafe_allow_html=True
     )
     render_info()
+    
+    # Footer
+    st.markdown(
+        """
+        <style>
+        .footer {
+            position: fixed;
+            bottom: 0;
+            left: 0;
+            right: 0;
+            background-color: #FFFCF5;
+            border-top: 2px solid #C8E6D4;
+            padding: 16px 20px;
+            text-align: center;
+            font-size: 0.85rem;
+            color: #6b8e7f;
+            z-index: 500;
+        }
+        </style>
+        <div class="footer">
+            © 2026 Juno AI | Your companion for emotional well-being | Not a substitute for professional help
+        </div>
+        """,
+        unsafe_allow_html=True
+    )
+    st.stop()
+
+# Resources page
+if st.session_state.get("page") == "resources":
+    st.markdown(
+        """
+        <style>
+        .stApp {
+            background-color: #FAF7F5;
+        }
+        </style>
+        """,
+        unsafe_allow_html=True
+    )
+    st.markdown("<h1 style='font-family: ChickenRice, cursive, sans-serif;'>Resources</h1>", unsafe_allow_html=True)
+    st.markdown("Find helpful mental health resources and support.")
+    
+    st.markdown("---")
+    
+    st.markdown(
+        """
+        <style>
+        .resource-card {
+            background-color: #FFFCF5;
+            border: 2px solid #C8E6D4;
+            border-radius: 12px;
+            padding: 20px;
+            margin: 15px 0;
+            box-shadow: 0 4px 12px rgba(200, 230, 212, 0.3);
+        }
+        .resource-card h3 {
+            color: #2d5f4a;
+            margin-top: 0;
+        }
+        .resource-card a {
+            color: #2d5f4a;
+            text-decoration: none;
+            font-weight: 600;
+        }
+        .resource-card a:hover {
+            color: #1a3d2e;
+            text-decoration: underline;
+        }
+        </style>
+        
+        <div class="resource-card">
+            <h3>🆘 Crisis Support</h3>
+            <p><strong>988 Suicide & Crisis Lifeline</strong><br>
+            Call or text 988 for 24/7 support<br>
+            <a href="https://988lifeline.org/" target="_blank">Visit Website →</a></p>
+        </div>
+        
+        <div class="resource-card">
+            <h3>💬 Teen Mental Health</h3>
+            <p><strong>NIMH: Child and Adolescent Mental Health</strong><br>
+            Comprehensive information about teen mental health<br>
+            <a href="https://www.nimh.nih.gov/health/topics/child-and-adolescent-mental-health" target="_blank">Visit Website →</a></p>
+        </div>
+        
+        <div class="resource-card">
+            <h3>📚 Self-Harm Support</h3>
+            <p><strong>Mental Health Literacy</strong><br>
+            Understanding and addressing self-injury<br>
+            <a href="https://mentalhealthliteracy.org/understanding-self-injury-self-harm/" target="_blank">Visit Website →</a></p>
+        </div>
+        
+        <div class="resource-card">
+            <h3>🧠 Additional Resources</h3>
+            <p><strong>Crisis Text Line</strong><br>
+            Text HOME to 741741 for free 24/7 support<br>
+            <a href="https://www.crisistextline.org/" target="_blank">Visit Website →</a></p>
+        </div>
+        """,
+        unsafe_allow_html=True
+    )
+    
+    st.markdown("---")
+    
+    if st.button("💬 Back to Chat", key="resources_to_chat"):
+        st.session_state["page"] = "chat"
+        st.rerun()
+    
+    # Footer
+    st.markdown(
+        """
+        <style>
+        .footer {
+            position: fixed;
+            bottom: 0;
+            left: 0;
+            right: 0;
+            background-color: #FFFCF5;
+            border-top: 2px solid #C8E6D4;
+            padding: 16px 20px;
+            text-align: center;
+            font-size: 0.85rem;
+            color: #6b8e7f;
+            z-index: 500;
+        }
+        </style>
+        <div class="footer">
+            © 2026 Juno AI | Your companion for emotional well-being | Not a substitute for professional help
+        </div>
+        """,
+        unsafe_allow_html=True
+    )
+    
     st.stop()
 
 # Simple Home page: short welcome and a button to go to the chat
@@ -501,10 +715,10 @@ if st.session_state.get("page", "chat") == "home":
             }
             .button-label {
                 position: fixed;
-                top: 290px;
-                right: 550px;
+                top: 280px;
+                right: 600px;
                 z-index: 999;
-                font-size: 7px;
+                font-size: 12px !important;
                 color: #6b8e7f;
                 text-align: center;
                 white-space: nowrap;
@@ -557,7 +771,7 @@ if st.session_state.get("page", "chat") == "home":
         f"""
         <div style="margin-top: -70px;">
         
-        **Welcome back, {st.session_state.get('username', 'User')}!** 
+        **Welcome back, <span style="background-color: #FFE5E5; padding: 2px 8px; border-radius: 6px;">{st.session_state.get('username', 'User')}</span>!**
         
         ---
         
@@ -580,23 +794,168 @@ if st.session_state.get("page", "chat") == "home":
             color: #1a3d2e !important;
             text-decoration: underline;
         }
+        .open-btn {
+            display: inline-block;
+            margin-left: 6px;
+            padding: 1px 4px;
+            font-size: 0.6rem;
+            background-color: #A8D5BA;
+            color: #2d5f4a;
+            border-radius: 4px;
+            text-decoration: none !important;
+            font-weight: 600;
+        }
+        .open-btn:hover {
+            background-color: #8fc5a3;
+            text-decoration: none !important;
+        }
         </style>
         <div class="resource-links">
-        <p><strong>Helpful Resources:</strong></p>
-        <p><a href="https://988lifeline.org/?utm_source=chatgpt.com" target="_blank">988 Lifeline</a></p>
-        <p><a href="https://www.nimh.nih.gov/health/topics/child-and-adolescent-mental-health?utm_source=chatgpt.com" target="_blank">NIMH: Child and Adolescent Mental Health</a></p>
-        <p><a href="https://mentalhealthliteracy.org/understanding-self-injury-self-harm/" target="_blank">Mental Health Literacy</a></p>
+        <p><strong>If you need extra support, these are trusted places to start:</strong></p>
+        <p><a href="https://988lifeline.org/?utm_source=chatgpt.com" target="_blank" class="open-btn">open ↗</a> <a href="https://988lifeline.org/?utm_source=chatgpt.com" target="_blank">988 Lifeline</a></p>
+        <p><a href="https://www.nimh.nih.gov/health/topics/child-and-adolescent-mental-health?utm_source=chatgpt.com" target="_blank" class="open-btn">open ↗</a> <a href="https://www.nimh.nih.gov/health/topics/child-and-adolescent-mental-health?utm_source=chatgpt.com" target="_blank">NIMH: Child and Adolescent Mental Health</a></p>
+        <p><a href="https://mentalhealthliteracy.org/understanding-self-injury-self-harm/" target="_blank" class="open-btn">open ↗</a> <a href="https://mentalhealthliteracy.org/understanding-self-injury-self-harm/" target="_blank">Mental Health Literacy</a></p>
         </div>
         """,
         unsafe_allow_html=True
     )
     
-    st.write("")
-    st.write("")
+    # Calculate and display status bubble
+    user_id = st.session_state.get("user_id")
+    
+    # Get emotion data
+    emotions = get_user_chat_history(user_id)
+    
+    # Calculate mood statistics
+    EMOTION_INTENSITY = {
+        "panic": 9, "crisis": 10, "self_harm": 10, "overwhelmed": 8, "test_anxiety": 7,
+        "social_anxiety": 7, "grief": 8, "anger": 7, "fear": 7,
+        "stress": 6, "sadness": 6, "loneliness": 6, "frustration": 5,
+        "worry": 5, "nervous": 5, "uncertain": 4, "confused": 4,
+        "tired": 4, "bored": 3, "calm": 2, "hopeful": 1, "happy": 1,
+        "content": 1, "casual": 2, "other": 2,
+    }
+    
+    if emotions:
+        intent_values = [EMOTION_INTENSITY.get(e.get("intent", "other"), 3) for e in emotions]
+        avg_intensity = sum(intent_values) / len(intent_values)
+        calm_moments = sum(1 for v in intent_values if v <= 3)
+        high_intensity = sum(1 for v in intent_values if v >= 7)
+        
+        # Determine mood status
+        if avg_intensity <= 3:
+            mood_status = "Calm & Content"
+            mood_emoji = "🌱"
+        elif avg_intensity <= 6:
+            mood_status = "Moderate Stress"
+            mood_emoji = "🌤️"
+        else:
+            mood_status = "High Intensity"
+            mood_emoji = "⚡"
+    else:
+        mood_status = "Getting Started"
+        mood_emoji = "✨"
+        calm_moments = 0
+        high_intensity = 0
+    
+    # Get journal entries for streak calculation
+    journal_entries = load_journal_entries(user_id)
+    
+    # Calculate reflection streak
+    reflection_streak = 0
+    if journal_entries:
+        # Sort by timestamp descending (most recent first)
+        sorted_entries = sorted(journal_entries, key=lambda x: x['timestamp'], reverse=True)
+        
+        # Check for consecutive days
+        today = datetime.utcnow().date()
+        current_check_date = today
+        
+        for entry in sorted_entries:
+            entry_date = datetime.fromisoformat(entry['timestamp']).date()
+            
+            # If entry is on the current check date or the day before, continue streak
+            if entry_date == current_check_date:
+                reflection_streak += 1
+                current_check_date = current_check_date - timedelta(days=1)
+            elif entry_date == current_check_date - timedelta(days=1):
+                reflection_streak += 1
+                current_check_date = entry_date - timedelta(days=1)
+            else:
+                # Gap found, stop counting
+                break
+    
+    # Display status bubble in corner
+    st.markdown(
+        f"""
+        <style>
+        .status-bubble {{
+            position: fixed;
+            bottom: 220px;
+            right: 280px;
+            background: #FFFCF5;
+            border-radius: 20px;
+            padding: 16px 20px;
+            box-shadow: 0 8px 24px rgba(200, 230, 212, 0.6), 0 0 40px rgba(200, 230, 212, 0.3);
+            z-index: 1000;
+            min-width: 220px;
+            border: 3px solid #C8E6D4;
+        }}
+        .status-bubble-title {{
+            font-family: 'ChickenRice', cursive, sans-serif;
+            font-weight: 700;
+            color: #2d5f4a;
+            font-size: 0.9rem;
+            margin-bottom: 8px;
+            text-align: left;
+            padding-left: 20px;
+        }}
+        .status-item {{
+            color: #2d5f4a;
+            font-size: 0.85rem;
+            margin: 6px 0;
+            line-height: 1.4;
+        }}
+        </style>
+        <div class="status-bubble">
+            <div class="status-bubble-title">✧ Your Status</div>
+            <div class="status-item"> ☼  <strong>Mood:</strong> <span style="background-color: #FFE5E5; padding: 2px 8px; border-radius: 8px;">{mood_status}</span></div>
+            <div class="status-item">❅  <strong>Calm moments:</strong> <span style="background-color: #E5F3FF; padding: 2px 8px; border-radius: 8px;">{calm_moments}</span></div>
+            <div class="status-item">⁂  <strong>High intensity:</strong> <span style="background-color: #FFF4E5; padding: 2px 8px; border-radius: 8px;">{high_intensity}</span></div>
+            <div class="status-item">✐  <strong>Reflection streak:</strong> <span style="background-color: #F0E5FF; padding: 2px 8px; border-radius: 8px;">{reflection_streak} day{"s" if reflection_streak != 1 else ""}</span></div>
+        </div>
+        """,
+        unsafe_allow_html=True
+    )
     
     if st.button("💬 chat now", key="home_go_chat"):
         st.session_state["page"] = "chat"
         st.rerun()
+    
+    # Footer
+    st.markdown(
+        """
+        <style>
+        .footer {
+            position: fixed;
+            bottom: 0;
+            left: 0;
+            right: 0;
+            background-color: #FFFCF5;
+            border-top: 2px solid #C8E6D4;
+            padding: 16px 20px;
+            text-align: center;
+            font-size: 0.85rem;
+            color: #6b8e7f;
+            z-index: 500;
+        }
+        </style>
+        <div class="footer">
+            © 2026 Juno AI | Your companion for emotional well-being | Not a substitute for professional help
+        </div>
+        """,
+        unsafe_allow_html=True
+    )
     
     # Show welcome overlay on top of home page
     if st.session_state.get("show_welcome_overlay", False):
@@ -898,14 +1257,14 @@ if st.session_state.get("page") == "chat":
         model_intent = result.get("intent", "stress")
         st.session_state["intent"] = model_intent
 
-        if dev_mode:
-            st.sidebar.success(f"Model intent: {model_intent}")
-            st.sidebar.write("Retrieved skill cards:")
-            for c in context_data["skill_cards"]:
-                st.sidebar.write(f"- {c['title']}")
-            st.sidebar.write("Retrieved documents:")
-            for d in context_data["documents"]:
-                st.sidebar.write(f"- {d['title']} (similarity: {d.get('similarity', 0):.2f})")
+        # if dev_mode:
+        #     st.sidebar.success(f"Model intent: {model_intent}")
+        #     st.sidebar.write("Retrieved skill cards:")
+        #     for c in context_data["skill_cards"]:
+        #         st.sidebar.write(f"- {c['title']}")
+        #     st.sidebar.write("Retrieved documents:")
+        #     for d in context_data["documents"]:
+        #         st.sidebar.write(f"- {d['title']} (similarity: {d.get('similarity', 0):.2f})")
         # Show assistant message to user using custom avatar renderer
         bot_text = result["assistant_message"]
         if not crisis_check_bool:
@@ -955,4 +1314,29 @@ if st.session_state.get("page") == "chat":
             "should_offer_skill": result["should_offer_skill"],
         })
 
+# Footer for chat page
+if st.session_state.get("page") == "chat":
+    st.markdown(
+        """
+        <style>
+        .footer {
+            position: fixed;
+            bottom: 0;
+            left: 0;
+            right: 0;
+            background-color: #FFFCF5;
+            border-top: 2px solid #C8E6D4;
+            padding: 16px 20px;
+            text-align: center;
+            font-size: 0.85rem;
+            color: #6b8e7f;
+            z-index: 500;
+        }
+        </style>
+        <div class="footer">
+            © 2026 Juno AI | Your companion for emotional well-being | Not a substitute for professional help
+        </div>
+        """,
+        unsafe_allow_html=True
+    )
 

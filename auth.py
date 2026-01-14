@@ -100,11 +100,14 @@ def render_auth_page():
     """Render the login/signup page"""
     st.markdown("""
         <style>
+        .stApp {
+            background-color: #FAF7F5;
+        }
         .auth-container {
             max-width: 400px;
             margin: 100px auto;
             padding: 40px;
-            background-color: #f8f9fa;
+            background-color: #FAF7F5;
             border-radius: 15px;
             box-shadow: 0 4px 6px rgba(0, 0, 0, 0.1);
         }
