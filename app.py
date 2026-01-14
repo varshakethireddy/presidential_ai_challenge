@@ -811,7 +811,7 @@ if st.session_state.get("page", "chat") == "home":
         }
         </style>
         <div class="resource-links">
-        <p><strong>If you need extra support, these are trusted places to start:</strong></p>
+        <p><strong>Beyond Juno AI, the following resources provide additional support:</strong></p>
         <p><a href="https://988lifeline.org/?utm_source=chatgpt.com" target="_blank" class="open-btn">open ↗</a> <a href="https://988lifeline.org/?utm_source=chatgpt.com" target="_blank">988 Lifeline</a></p>
         <p><a href="https://www.nimh.nih.gov/health/topics/child-and-adolescent-mental-health?utm_source=chatgpt.com" target="_blank" class="open-btn">open ↗</a> <a href="https://www.nimh.nih.gov/health/topics/child-and-adolescent-mental-health?utm_source=chatgpt.com" target="_blank">NIMH: Child and Adolescent Mental Health</a></p>
         <p><a href="https://mentalhealthliteracy.org/understanding-self-injury-self-harm/" target="_blank" class="open-btn">open ↗</a> <a href="https://mentalhealthliteracy.org/understanding-self-injury-self-harm/" target="_blank">Mental Health Literacy</a></p>
