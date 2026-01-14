@@ -193,6 +193,8 @@ def logout():
     st.session_state["user_id"] = None
     st.session_state["username"] = None
     st.session_state["session_id"] = None
+    st.session_state["messages"] = None  # Clear chat messages
+    st.session_state["last_loaded_user_id"] = None  # Clear user tracking
     st.rerun()
 
 def is_authenticated():
