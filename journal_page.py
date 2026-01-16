@@ -154,7 +154,12 @@ def render_journal_write():
     # Get current date
     current_date = datetime.now().strftime("%B %d, %Y")
     
-    st.title(f" {current_date}")
+    st.markdown(
+        f'''<div style="margin-top: 80px; margin-left: 0px; margin-bottom: -20px;">
+        <h1 style="font-family: ChickenRice, cursive, sans-serif; font-size: 2.5rem; color: #2d5f4a;"> {current_date}</h1>
+        </div>''',
+        unsafe_allow_html=True
+    )
     
     # AI Prompt section
     col1, col2 = st.columns([3, 1])
