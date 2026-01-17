@@ -74,7 +74,7 @@ Keep it brief, specific, and connected to their LAST message. Just provide the p
 
     try:
         response = client.chat.completions.create(
-            model="gpt-4-mini",
+            model="gpt-4o-mini",
             messages=[
                 {"role": "system", "content": "You are Juno, a creative AI companion for teens. Generate brief, specific journal prompts based on what the user just shared."},
                 {"role": "user", "content": prompt}
