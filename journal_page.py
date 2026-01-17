@@ -161,6 +161,8 @@ def render_journal_write():
         unsafe_allow_html=True
     )
     
+    st.write("")
+    
     # AI Prompt section
     col1, col2 = st.columns([1, 3])
     with col1:
