@@ -8,21 +8,31 @@ import base64
 from io import BytesIO
 from db_utils import get_user_chat_history
 
-def image_to_base64(img):
-    """Convert PIL Image to base64 string"""
-    buffered = BytesIO()
-    img.save(buffered, format="PNG")
-    return base64.b64encode(buffered.getvalue()).decode()
+@st.cache_data(ttl=60)
+def image_to_base64(img_path):
+    """Convert PIL Image to base64 string - cached for 60 seconds"""
+    try:
+        img = Image.open(img_path)
+        buffered = BytesIO()
+        img.save(buffered, format="PNG")
+        return base64.b64encode(buffered.getvalue()).decode()
+    except:
+        return None
+
+@st.cache_data(ttl=30)
+def load_timeline_emotions(user_id):
+    """Load emotion logs for current user - cached for 30 seconds"""
+    return get_user_chat_history(user_id)
 
 def render_timeline():
     """Render the emotional timeline page"""
+    st.markdown("<p style='font-size: 0.85rem; font-style: italic; color: #666; margin-bottom: 0.5rem;'>Emotion Analytics summarizes patterns from your check-ins. It's not a diagnosis.</p>", unsafe_allow_html=True)
     st.markdown("<h1 style='font-family: ChickenRice, cursive, sans-serif;'>Emotional Timeline</h1>", unsafe_allow_html=True)
     st.markdown("Track your emotional journey over time.")
     
-    # Load emotion logs for current user
-    def load_timeline_emotions():
-        user_id = st.session_state.get("user_id")
-        return get_user_chat_history(user_id)
+    # Get user_id and load emotions with caching
+    user_id = st.session_state.get("user_id")
+    emotions = load_timeline_emotions(user_id)
     
     # Map emotions to numerical values
     EMOTION_INTENSITY = {
@@ -41,8 +51,6 @@ def render_timeline():
         "calm": 2, "hopeful": 1, "relieved": 1, "content": 1,
         "casual": 2, "other": 2,
     }
-    
-    emotions = load_timeline_emotions()
     
     if not emotions:
         st.markdown(
@@ -112,17 +120,15 @@ def render_timeline():
         # Create container with graph and overlapping image
         st.markdown('<div style="position: relative; margin-top: -80px;">', unsafe_allow_html=True)
         
-        # Add decorative image with absolute positioning
-        try:
-            deco_image = Image.open("data/avatars/timeline_deco.png")
+        # Add decorative image with absolute positioning (cached)
+        img_base64 = image_to_base64("data/avatars/timeline_deco.png")
+        if img_base64:
             st.markdown(
                 f'<div style="position: absolute; top: -160px; right: 0; z-index: 999; width: 450px; pointer-events: none;">'
-                f'<img src="data:image/png;base64,{image_to_base64(deco_image)}" style="width: 100%; height: auto;" />'
+                f'<img src="data:image/png;base64,{img_base64}" style="width: 100%; height: auto;" />'
                 f'</div>',
                 unsafe_allow_html=True
             )
-        except Exception:
-            pass
         
         st.plotly_chart(fig, use_container_width=True)
         st.markdown('</div>', unsafe_allow_html=True)
@@ -329,6 +335,7 @@ Provide a warm, supportive 1-2 sentence insight about their emotional journey. B
                     unsafe_allow_html=True
                 )
     
+    # Close the spinner context
     st.write("")
     st.write("")
     
