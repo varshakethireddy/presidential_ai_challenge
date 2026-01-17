@@ -1,3 +1,15 @@
+---
+title: JunoAI
+emoji: 🌙
+colorFrom: blue
+colorTo: green
+sdk: streamlit
+sdk_version: "1.32.0"
+python_version: "3.11"
+app_file: app.py
+pinned: false
+---
+
 # Presidential AI Challenge
 
 A lightweight Streamlit app and supporting modules for the Presidential AI Challenge project.
