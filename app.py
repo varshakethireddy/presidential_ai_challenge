@@ -678,7 +678,7 @@ if st.session_state.get("page", "chat") == "home":
     
     # Load emotions icon for the button
     try:
-        with open('data/avatars/juno_emotions.pdf', 'rb') as f:
+        with open('data/avatars/juno_emotions.png', 'rb') as f:
             emotions_icon_data = base64.b64encode(f.read()).decode()
         has_emotions_icon = True
     except:
