@@ -556,7 +556,8 @@ if st.session_state.get("page") == "resources":
         unsafe_allow_html=True
     )
     st.markdown("<h1 style='font-family: ChickenRice, cursive, sans-serif;'>Resources</h1>", unsafe_allow_html=True)
-    st.markdown("Find helpful mental health resources and support.")
+    st.markdown("These are helpful resources if you need any external guidance or immediate support! \
+Remember, Juno is here to support you, but reaching out to professionals can provide additional help when needed.", unsafe_allow_html=True)
     
     st.markdown("---")
     
