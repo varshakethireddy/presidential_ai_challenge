@@ -107,7 +107,7 @@ def render_auth_page():
             max-width: 400px;
             margin: 100px auto;
             padding: 40px;
-            background-color: #FAF7F5;
+            background-color: #FFFCF5;
             border-radius: 15px;
             box-shadow: 0 4px 6px rgba(0, 0, 0, 0.1);
         }
@@ -117,8 +117,57 @@ def render_auth_page():
     # Center the form
     col1, col2, col3 = st.columns([1, 2, 1])
     
+    # Load sprout gif and font
+    import base64
+    with open('data/avatars/sprout.gif', 'rb') as f:
+        gif_data = base64.b64encode(f.read()).decode()
+    
+    with open('fonts/Chicken Rice.otf', 'rb') as f:
+        font_data = base64.b64encode(f.read()).decode()
+    
     with col2:
-        st.markdown("<h1 style='text-align: center; color: #8fc5a3;'>🌟 juno</h1>", unsafe_allow_html=True)
+        st.markdown(
+            f"""
+            <style>
+            @font-face {{
+                font-family: 'ChickenRice';
+                src: url(data:font/opentype;base64,{font_data}) format('opentype');
+                font-weight: normal;
+                font-style: normal;
+            }}
+            .auth-title-container {{
+                position: relative;
+                display: flex;
+                justify-content: center;
+                align-items: center;
+                margin-bottom: 10px;
+            }}
+            .auth-title-container h1 {{
+                font-family: 'ChickenRice', cursive, sans-serif !important;
+                color: #000000;
+                font-size: 2.5rem;
+                margin: 0;
+                position: relative;
+                z-index: 2;
+            }}
+            .auth-sprout {{
+                position: absolute;
+                top: -3px;
+                left: 50%;
+                transform: translateX(-60px);
+                width: 90px;
+                height: 90px;
+                pointer-events: none;
+                z-index: 1;
+            }}
+            </style>
+            <div class="auth-title-container">
+                <img src="data:image/gif;base64,{gif_data}" class="auth-sprout">
+                <h1>juno</h1>
+            </div>
+            """,
+            unsafe_allow_html=True
+        )
         st.markdown("<p style='text-align: center; color: #6b8e7f; margin-bottom: 10px;'>Your AI companion for emotional well-being</p>", unsafe_allow_html=True)
         
         # Add custom CSS to shift radio buttons to the right
@@ -126,6 +175,10 @@ def render_auth_page():
             <style>
             div[role="radiogroup"] {
                 margin-left: 2cm;
+            }
+            /* Light green background for text inputs */
+            input[type="text"], input[type="password"], input[type="email"] {
+                background-color: #E8F5E9 !important;
             }
             </style>
         """, unsafe_allow_html=True)
@@ -143,7 +196,7 @@ def render_auth_page():
 def render_login_form():
     """Render the login form"""
     with st.form("login_form", clear_on_submit=False):
-        st.markdown("### Welcome Back!")
+        st.markdown("<h3 style='font-family: ChickenRice, cursive, sans-serif; margin-left: 50px;'>Welcome Back!</h3>", unsafe_allow_html=True)
         username = st.text_input("Username", key="login_username")
         password = st.text_input("Password", type="password", key="login_password")
         
@@ -167,7 +220,7 @@ def render_login_form():
 def render_signup_form():
     """Render the signup form"""
     with st.form("signup_form", clear_on_submit=True):
-        st.markdown("### Create Your Account")
+        st.markdown("<h3 style='font-family: ChickenRice, cursive, sans-serif; margin-left: 45px; font-size: 1.3rem;'>Create Your Account</h3>", unsafe_allow_html=True)
         username = st.text_input("Username", key="signup_username", help="Choose a unique username")
         password = st.text_input("Password", type="password", key="signup_password", help="Min 6 characters")
         password_confirm = st.text_input("Confirm Password", type="password", key="signup_password_confirm")
@@ -196,6 +249,8 @@ def logout():
     st.session_state["user_id"] = None
     st.session_state["username"] = None
     st.session_state["session_id"] = None
+    st.session_state["messages"] = None  # Clear chat messages
+    st.session_state["last_loaded_user_id"] = None  # Clear user tracking
     st.rerun()
 
 def is_authenticated():

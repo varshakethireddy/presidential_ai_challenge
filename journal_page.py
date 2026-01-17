@@ -155,7 +155,9 @@ def render_journal_write():
     current_date = datetime.now().strftime("%B %d, %Y")
     
     st.markdown(
-        f'<h1 style="font-family: ChickenRice, cursive, sans-serif;">{current_date}</h1>',
+        f'''<div style="margin-top: 80px; margin-left: 0px; margin-bottom: -20px;">
+        <h1 style="font-family: ChickenRice, cursive, sans-serif; font-size: 2.5rem; color: #2d5f4a;"> {current_date}</h1>
+        </div>''',
         unsafe_allow_html=True
     )
     

@@ -255,12 +255,13 @@ if st.session_state.get("page") == "chat":
     st.caption("A teen-focused coping-skills coach, not a therapist")
 
 # Initialize session state
-if "messages" not in st.session_state:
-    # Load chat history from database for this user
-    user_id = st.session_state.get("user_id")
+# Check if user has changed - if so, reload messages for the new user
+current_user_id = st.session_state.get("user_id")
+if "last_loaded_user_id" not in st.session_state or st.session_state["last_loaded_user_id"] != current_user_id:
+    # User has changed or first load - reload messages
     session_id = st.session_state.get("session_id")
     
-    db_messages = load_chat_messages(user_id, session_id)
+    db_messages = load_chat_messages(current_user_id, session_id)
     
     if db_messages:
         # Convert database messages to session state format
@@ -273,6 +274,9 @@ if "messages" not in st.session_state:
         st.session_state["messages"] = [
             {"role": "assistant", "content": "Hey — I'm here with you. What's been going on today?"}
         ]
+    
+    # Remember which user's messages we loaded
+    st.session_state["last_loaded_user_id"] = current_user_id
 
 if "intent" not in st.session_state:
     st.session_state["intent"] = "stress"  # default fallback
@@ -303,11 +307,6 @@ if st.sidebar.button("timeline", key="sidebar_timeline"):
 # Journal page button
 if st.sidebar.button("journal", key="sidebar_journal"):
     st.session_state["page"] = "journal"
-    st.rerun()
-
-# Guidelines page button (previously "interact")
-if st.sidebar.button("guidelines", key="sidebar_info"):
-    st.session_state["page"] = "info"
     st.rerun()
 
 # Resources page button
@@ -387,9 +386,16 @@ if st.session_state.get("page") == "emotions":
             color: #6b8e7f;
             z-index: 500;
         }
+        .footer a {
+            color: #4CAF50;
+            text-decoration: none;
+        }
+        .footer a:hover {
+            text-decoration: underline;
+        }
         </style>
         <div class="footer">
-            © 2026 Juno AI | Your companion for emotional well-being | Not a substitute for professional help
+            © 2026 Juno AI | Your companion for emotional well-being | Not a substitute for professional help | <a href="https://988lifeline.org" target="_blank">988 Crisis Lifeline</a> ☏
         </div>
         """,
         unsafe_allow_html=True
@@ -427,9 +433,16 @@ if st.session_state.get("page") == "timeline":
             color: #6b8e7f;
             z-index: 500;
         }
+        .footer a {
+            color: #4CAF50;
+            text-decoration: none;
+        }
+        .footer a:hover {
+            text-decoration: underline;
+        }
         </style>
         <div class="footer">
-            © 2026 Juno AI | Your companion for emotional well-being | Not a substitute for professional help
+            © 2026 Juno AI | Your companion for emotional well-being | Not a substitute for professional help | <a href="https://988lifeline.org" target="_blank">988 Crisis Lifeline</a> ☏
         </div>
         """,
         unsafe_allow_html=True
@@ -467,9 +480,16 @@ if st.session_state.get("page") == "journal":
             color: #6b8e7f;
             z-index: 500;
         }
+        .footer a {
+            color: #4CAF50;
+            text-decoration: none;
+        }
+        .footer a:hover {
+            text-decoration: underline;
+        }
         </style>
         <div class="footer">
-            © 2026 Juno AI | Your companion for emotional well-being | Not a substitute for professional help
+            © 2026 Juno AI | Your companion for emotional well-being | Not a substitute for professional help | <a href="https://988lifeline.org" target="_blank">988 Crisis Lifeline</a> ☏
         </div>
         """,
         unsafe_allow_html=True
@@ -507,9 +527,16 @@ if st.session_state.get("page") == "info":
             color: #6b8e7f;
             z-index: 500;
         }
+        .footer a {
+            color: #4CAF50;
+            text-decoration: none;
+        }
+        .footer a:hover {
+            text-decoration: underline;
+        }
         </style>
         <div class="footer">
-            © 2026 Juno AI | Your companion for emotional well-being | Not a substitute for professional help
+            © 2026 Juno AI | Your companion for emotional well-being | Not a substitute for professional help | <a href="https://988lifeline.org" target="_blank">988 Crisis Lifeline</a> ☏
         </div>
         """,
         unsafe_allow_html=True
@@ -529,7 +556,8 @@ if st.session_state.get("page") == "resources":
         unsafe_allow_html=True
     )
     st.markdown("<h1 style='font-family: ChickenRice, cursive, sans-serif;'>Resources</h1>", unsafe_allow_html=True)
-    st.markdown("Find helpful mental health resources and support.")
+    st.markdown("These are helpful resources if you need any external guidance or immediate support! \
+Remember, Juno is here to support you, but reaching out to professionals can provide additional help when needed.", unsafe_allow_html=True)
     
     st.markdown("---")
     
@@ -613,9 +641,16 @@ if st.session_state.get("page") == "resources":
             color: #6b8e7f;
             z-index: 500;
         }
+        .footer a {
+            color: #4CAF50;
+            text-decoration: none;
+        }
+        .footer a:hover {
+            text-decoration: underline;
+        }
         </style>
         <div class="footer">
-            © 2026 Juno AI | Your companion for emotional well-being | Not a substitute for professional help
+            © 2026 Juno AI | Your companion for emotional well-being | Not a substitute for professional help | <a href="https://988lifeline.org" target="_blank">988 Crisis Lifeline</a> ☏
         </div>
         """,
         unsafe_allow_html=True
@@ -671,6 +706,13 @@ if st.session_state.get("page", "chat") == "home":
             position: relative;
             z-index: 2;
         }}
+        .home-tagline {{
+            font-family: 'ChickenRice', cursive, sans-serif !important;
+            font-size: 1.1rem;
+            color: #6b8e7f;
+            margin-top: -5px;
+            margin-left: 5px;
+        }}
         .sprout-overlay {{
             position: absolute;
             top: -20px;
@@ -692,6 +734,7 @@ if st.session_state.get("page", "chat") == "home":
             <div class="home-title-container">
                 <img src="data:image/gif;base64,{gif_data}" class="sprout-overlay">
                 <h1 class="home-title-text">juno ai</h1>
+                <p class="home-tagline">Your AI companion for emotional well-being</p>
             </div>
         </div>
         """,
@@ -710,13 +753,13 @@ if st.session_state.get("page", "chat") == "home":
             .header-button-container {
                 position: fixed;
                 top: 150px;
-                right: 600px;
+                right: 280px;
                 z-index: 999;
             }
             .button-label {
                 position: fixed;
                 top: 280px;
-                right: 600px;
+                right: 280px;
                 z-index: 999;
                 font-size: 12px !important;
                 color: #6b8e7f;
@@ -750,7 +793,7 @@ if st.session_state.get("page", "chat") == "home":
                     buttons.forEach(btn => {{
                         if (btn.innerText.trim() === '.') {{
                             btn.innerHTML = '<img src="data:image/png;base64,{emotions_icon_data}" style="width:120px;height:120px;border-radius:50%;object-fit:cover;display:block;margin:0 auto;padding:0;" />';
-                            btn.style.cssText = 'width: 128px !important; height: 128px !important; min-height: 128px !important; min-width: 128px !important; padding: 4px !important; border-radius: 50% !important; border: none !important; display: flex !important; align-items: center !important; justify-content: center !important; opacity: 1 !important; transition: opacity 0.2s ease-in !important; position: fixed !important; top: 150px !important; right: 600px !important; z-index: 999 !important; margin: 0 !important;';
+                            btn.style.cssText = 'width: 128px !important; height: 128px !important; min-height: 128px !important; min-width: 128px !important; padding: 4px !important; border-radius: 50% !important; border: none !important; display: flex !important; align-items: center !important; justify-content: center !important; opacity: 1 !important; transition: opacity 0.2s ease-in !important; position: fixed !important; top: 150px !important; right: 280px !important; z-index: 999 !important; margin: 0 !important;';
                             
                             found = true;
                         }}
@@ -767,6 +810,7 @@ if st.session_state.get("page", "chat") == "home":
             height=0,
             width=0
         )
+    
     st.markdown(
         f"""
         <div style="margin-top: -70px;">
@@ -891,7 +935,7 @@ if st.session_state.get("page", "chat") == "home":
         <style>
         .status-bubble {{
             position: fixed;
-            bottom: 220px;
+            bottom: 180px;
             right: 280px;
             background: #FFFCF5;
             border-radius: 20px;
@@ -922,15 +966,22 @@ if st.session_state.get("page", "chat") == "home":
             <div class="status-item"> ☼  <strong>Mood:</strong> <span style="background-color: #FFE5E5; padding: 2px 8px; border-radius: 8px;">{mood_status}</span></div>
             <div class="status-item">❅  <strong>Calm moments:</strong> <span style="background-color: #E5F3FF; padding: 2px 8px; border-radius: 8px;">{calm_moments}</span></div>
             <div class="status-item">⁂  <strong>High intensity:</strong> <span style="background-color: #FFF4E5; padding: 2px 8px; border-radius: 8px;">{high_intensity}</span></div>
-            <div class="status-item">✐  <strong>Reflection streak:</strong> <span style="background-color: #F0E5FF; padding: 2px 8px; border-radius: 8px;">{reflection_streak} day{"s" if reflection_streak != 1 else ""}</span></div>
+            <div class="status-item">✐  <strong>Reflection streak:</strong> <span style="background-color: #F0E5FF; padding: 2px 8px; border-radius: 8px;">{"start now!" if reflection_streak == 0 else f"{reflection_streak} day{'s' if reflection_streak != 1 else ''}"}</span></div>
         </div>
         """,
         unsafe_allow_html=True
     )
     
-    if st.button("💬 chat now", key="home_go_chat"):
-        st.session_state["page"] = "chat"
-        st.rerun()
+    # Chat Now and Guidelines buttons side by side
+    col1, col2, col3 = st.columns([0.8, 0.8, 2.4])
+    with col1:
+        if st.button("💬 chat now", key="home_go_chat"):
+            st.session_state["page"] = "chat"
+            st.rerun()
+    with col2:
+        if st.button("guidelines", key="home_go_guidelines"):
+            st.session_state["page"] = "info"
+            st.rerun()
     
     # Footer
     st.markdown(
@@ -949,9 +1000,16 @@ if st.session_state.get("page", "chat") == "home":
             color: #6b8e7f;
             z-index: 500;
         }
+        .footer a {
+            color: #4CAF50;
+            text-decoration: none;
+        }
+        .footer a:hover {
+            text-decoration: underline;
+        }
         </style>
         <div class="footer">
-            © 2026 Juno AI | Your companion for emotional well-being | Not a substitute for professional help
+            © 2026 Juno AI | Your companion for emotional well-being | Not a substitute for professional help | <a href="https://988lifeline.org" target="_blank">988 Crisis Lifeline</a> ☏
         </div>
         """,
         unsafe_allow_html=True
@@ -1136,6 +1194,10 @@ if st.session_state.get("page") == "chat":
     user_text = st.chat_input("you can start anywhere...")
 
     if user_text:
+        # Ensure session_id exists before saving messages
+        if "session_id" not in st.session_state or st.session_state["session_id"] is None:
+            st.session_state["session_id"] = str(uuid.uuid4())
+        
         # Add user message to session and render with custom avatar (avoid Streamlit default avatar)
         st.session_state["messages"].append({"role": "user", "content": user_text})
         
@@ -1332,9 +1394,16 @@ if st.session_state.get("page") == "chat":
             color: #6b8e7f;
             z-index: 500;
         }
+        .footer a {
+            color: #4CAF50;
+            text-decoration: none;
+        }
+        .footer a:hover {
+            text-decoration: underline;
+        }
         </style>
         <div class="footer">
-            © 2026 Juno AI | Your companion for emotional well-being | Not a substitute for professional help
+            © 2026 Juno AI | Your companion for emotional well-being | Not a substitute for professional help | <a href="https://988lifeline.org" target="_blank">988 Crisis Lifeline</a> ☏
         </div>
         """,
         unsafe_allow_html=True
