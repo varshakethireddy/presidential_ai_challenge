@@ -292,7 +292,7 @@ Provide a warm, supportive 1-2 sentence insight about their emotional journey. B
             try:
                 client = OpenAI(api_key=os.getenv("OPENAI_API_KEY"))
                 response = client.chat.completions.create(
-                    model="gpt-5o-mini",
+                    model="gpt-4o-mini",
                     messages=[
                         {"role": "system", "content": "You are Juno, a compassionate AI mental health companion for teens. Provide brief, warm, supportive insights."},
                         {"role": "user", "content": prompt}
